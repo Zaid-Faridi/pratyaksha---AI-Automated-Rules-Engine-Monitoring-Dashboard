@@ -32,6 +32,25 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+from sqlalchemy import text
+
+
 def init_db() -> None:
-    """Create all tables in the database if they do not exist."""
+    """Create all tables and auto-migrate missing columns."""
     Base.metadata.create_all(bind=engine)
+
+    # Lightweight auto-migrations for newly added columns
+    with engine.begin() as conn:
+        try:
+            conn.execute(text("ALTER TABLE cameras ADD COLUMN edge_metadata JSON DEFAULT '{}'"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE detection_events ADD COLUMN event_id VARCHAR(64)"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_detection_events_event_id ON detection_events (event_id)"))
+        except Exception:
+            pass
+

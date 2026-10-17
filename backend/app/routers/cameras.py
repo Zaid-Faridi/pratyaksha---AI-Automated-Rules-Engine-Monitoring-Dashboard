@@ -3,12 +3,13 @@ Camera Management and Health Heartbeat Router for Pratyaksha.
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.models import Alert, Camera, Centre, utcnow
-from app.schemas import CameraCreate, CameraOut, CameraUpdate
+from app.schemas import CameraCreate, CameraHeartbeatPayload, CameraOut, CameraUpdate
 
 router = APIRouter(prefix="/cameras", tags=["Cameras"])
 
@@ -90,11 +91,23 @@ def delete_camera(camera_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{camera_id}/heartbeat")
-def camera_heartbeat(camera_id: str, db: Session = Depends(get_db)):
+def camera_heartbeat(
+    camera_id: str,
+    payload: Optional[CameraHeartbeatPayload] = None,
+    db: Session = Depends(get_db),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+):
     """
     Heartbeat ping from camera edge device.
-    Updates last_seen_at timestamp, marks camera online, and auto-resolves any offline alerts.
+    Updates last_seen_at timestamp, saves edge agent telemetry (queue depth, CPU, memory),
+    marks camera online, auto-resolves any offline alerts, and reports agent health.
     """
+    if settings.edge_api_key and x_api_key != settings.edge_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing X-API-Key header.",
+        )
+
     camera = db.query(Camera).filter(Camera.id == camera_id).first()
     if not camera:
         raise HTTPException(status_code=404, detail=f"Camera '{camera_id}' not found.")
@@ -102,6 +115,23 @@ def camera_heartbeat(camera_id: str, db: Session = Depends(get_db)):
     now = utcnow()
     camera.last_seen_at = now
     camera.status = "online"
+
+    # Edge telemetry and health evaluation
+    agent_health = "healthy"
+    queue_depth = 0
+    agent_version = "1.0.0"
+
+    if payload:
+        queue_depth = payload.queue_depth or 0
+        agent_version = payload.agent_version or "1.0.0"
+        camera.edge_metadata = payload.model_dump(mode="json")
+
+        if payload.cpu_percent is not None and payload.cpu_percent >= 90.0:
+            agent_health = "critical_load"
+        elif queue_depth >= 100:
+            agent_health = "queue_backed_up"
+        elif payload.cpu_percent is not None and payload.cpu_percent >= 75.0:
+            agent_health = "high_load"
 
     # Auto-resolve any open CAMERA_OFFLINE alert
     open_alert = db.query(Alert).filter(
@@ -121,4 +151,7 @@ def camera_heartbeat(camera_id: str, db: Session = Depends(get_db)):
         "camera_id": camera_id,
         "camera_status": camera.status,
         "last_seen_at": camera.last_seen_at,
+        "queue_depth": queue_depth,
+        "agent_health": agent_health,
+        "agent_version": agent_version,
     }

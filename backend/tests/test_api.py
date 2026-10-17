@@ -182,3 +182,85 @@ def test_compliance_and_dashboard_endpoints(client, standard_setup):
     assert dash_data["total_centres"] >= 1
     assert "alerts_by_type" in dash_data
     assert "top_non_compliant_centres" in dash_data
+
+
+def test_event_idempotency_and_gzip(client, standard_setup):
+    import gzip
+    import json
+
+    cam_id = standard_setup["camera"].id
+    event_id = "test-uuid-event-001"
+
+    event_payload = {
+        "event_id": event_id,
+        "camera_id": cam_id,
+        "zone": "classroom",
+        "timestamp": "2026-10-18T10:00:00Z",
+        "person_count_raw": 15,
+        "person_count_smoothed": 15,
+        "infrastructure": [{"item": "chair", "expected": 20, "detected": 20, "status": "MATCH"}],
+    }
+
+    # 1. Normal ingestion
+    res1 = client.post("/events", json=[event_payload])
+    assert res1.status_code == 201
+    assert res1.json()["events_ingested"] == 1
+    assert res1.json()["duplicates_skipped"] == 0
+
+    # 2. Duplicate ingestion (same event_id) -> must skip duplicate idempotently
+    res2 = client.post("/events", json=[event_payload])
+    assert res2.status_code == 201
+    assert res2.json()["events_ingested"] == 0
+    assert res2.json()["duplicates_skipped"] == 1
+
+    # 3. Gzip-compressed ingestion
+    event_payload_gzip = dict(event_payload, event_id="test-uuid-event-002")
+    compressed_bytes = gzip.compress(json.dumps([event_payload_gzip]).encode("utf-8"))
+    res3 = client.post(
+        "/events",
+        content=compressed_bytes,
+        headers={"Content-Encoding": "gzip", "Content-Type": "application/json"},
+    )
+    assert res3.status_code == 201
+    assert res3.json()["events_ingested"] == 1
+
+
+def test_camera_heartbeat_telemetry(client, standard_setup):
+    cam_id = standard_setup["camera"].id
+
+    heartbeat_data = {
+        "queue_depth": 5,
+        "last_sample_time": "2026-10-18T10:05:00Z",
+        "cpu_percent": 34.2,
+        "memory_percent": 45.0,
+        "agent_version": "1.4.0",
+    }
+
+    res = client.post(f"/cameras/{cam_id}/heartbeat", json=heartbeat_data)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["camera_id"] == cam_id
+    assert data["queue_depth"] == 5
+    assert data["agent_health"] == "healthy"
+    assert data["agent_version"] == "1.4.0"
+
+
+def test_evidence_thumbnail_upload(client, standard_setup):
+    import base64
+
+    cam_id = standard_setup["camera"].id
+    # 1x1 pixel transparent gif/png in base64
+    fake_b64 = base64.b64encode(b"fake-downscaled-privacy-blurred-jpeg-bytes").decode("utf-8")
+
+    evidence_payload = {
+        "event_id": "test-evidence-uuid-001",
+        "camera_id": cam_id,
+        "image_b64": fake_b64,
+        "notes": "Attendance deficit evidence",
+    }
+
+    res = client.post("/events/evidence", json=evidence_payload)
+    assert res.status_code == 201
+    assert res.json()["status"] == "success"
+    assert res.json()["event_id"] == "test-evidence-uuid-001"
+

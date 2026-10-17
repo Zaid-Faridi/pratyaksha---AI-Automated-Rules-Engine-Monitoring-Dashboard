@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  pratyaksha-edge:
+    build:
+      context: ..
+      dockerfile: edge/Dockerfile
+    container_name: pratyaksha-edge-agent
+    restart: unless-stopped
+    environment:
+      - PRATYAKSHA_CENTRE_ID=centre_01
+      - PRATYAKSHA_CAMERA_ID=cam_01
+      - PRATYAKSHA_CAMERA_SOURCE=sample_data/skilling_center_demo.mp4 # or rtsp://192.168.1.100:554/live
+      - PRATYAKSHA_BACKEND_URL=http://host.docker.internal:8088
+      - PRATYAKSHA_API_KEY=your_secret_centre_api_key
+      - PRATYAKSHA_PROFILE=normal
+    volumes:
+      - ./data:/app/edge/data
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1536M
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

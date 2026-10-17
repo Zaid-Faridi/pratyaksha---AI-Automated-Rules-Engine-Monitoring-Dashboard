@@ -2,7 +2,7 @@
 Application Configuration and Rules Thresholds for Pratyaksha Backend.
 """
 
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,6 +38,9 @@ class Settings(BaseSettings):
 
     # Privacy & Data Retention: delete raw events older than N days (default: 90 days)
     data_retention_days: int = 90
+
+    # Edge API Key Authentication (Optional: when set, requires X-API-Key header on edge sync)
+    edge_api_key: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

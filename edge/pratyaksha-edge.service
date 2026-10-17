@@ -1,0 +1,38 @@
+[Unit]
+Description=Pratyaksha AI Video-Analytics Edge Monitoring Agent
+Documentation=https://github.com/Zaid-Faridi/pratyaksha---AI-Automated-Rules-Engine-Monitoring-Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pratyaksha
+Group=pratyaksha
+WorkingDirectory=/opt/pratyaksha
+
+# Configuration environment file (no secrets in service file)
+EnvironmentFile=-/etc/pratyaksha/edge.env
+Environment=PYTHONPATH=/opt/pratyaksha
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/opt/pratyaksha/.venv/bin/python -m edge.agent --config /etc/pratyaksha/edge_config.yaml
+
+# Resilient restart on crash or camera drop
+Restart=always
+RestartSec=5s
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Security hardening for unattended field deployment
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/pratyaksha/data /var/log/pratyaksha
+PrivateTmp=true
+NoNewPrivileges=true
+
+# Resource limits (prevent runaway processes on low-end edge hardware)
+CPUQuota=180%
+MemoryMax=1.5G
+
+[Install]
+WantedBy=multi-user.target

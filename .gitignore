@@ -52,3 +52,8 @@ frontend/.env
 outputs/
 *.mp4
 !sample_data/*.mp4
+
+# Models & Edge Data
+*.onnx
+edge/data/
+

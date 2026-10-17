@@ -52,6 +52,7 @@ class Camera(Base):
     last_seen_at = Column(DateTime, nullable=True)
     status = Column(String(32), default="offline")  # "online", "offline", "tampered"
     rtsp_url = Column(String(255), nullable=True)
+    edge_metadata = Column(JSON, default=dict)  # {"queue_depth": 0, "cpu_percent": 12.5, "agent_version": "1.0.0"}
     created_at = Column(DateTime, default=utcnow)
 
     # Relationships
@@ -109,6 +110,7 @@ class DetectionEvent(Base):
     __tablename__ = "detection_events"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    event_id = Column(String(64), unique=True, nullable=True, index=True)  # UUID from edge for idempotency
     camera_id = Column(String(64), ForeignKey("cameras.id", ondelete="CASCADE"), nullable=False, index=True)
     zone = Column(String(100), nullable=False, index=True)
     timestamp = Column(DateTime, nullable=False, index=True)

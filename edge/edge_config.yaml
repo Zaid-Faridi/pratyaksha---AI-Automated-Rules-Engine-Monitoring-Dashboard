@@ -1,0 +1,39 @@
+# Pratyaksha Phase 4: Edge Agent Configuration
+# Operational settings for rural and semi-urban skilling centres.
+
+edge:
+  centre_id: "centre_01"
+  camera_id: "cam_01"
+  # Video source: RTSP stream URL or local test video
+  source: "sample_data/skilling_center_demo.mp4"
+
+backend:
+  # Target backend URL (Can be overridden via PRATYAKSHA_BACKEND_URL)
+  url: "http://127.0.0.1:8088"
+  # API key (Can be set via PRATYAKSHA_API_KEY environment variable)
+  api_key: null
+  timeout_sec: 10.0
+
+adaptive:
+  # Base operating profile: "ultra_low", "low", "normal"
+  profile: "normal"
+  # Auto-downgrade when CPU exceeds threshold (%)
+  cpu_high_threshold: 85.0
+  # Auto-recover when CPU drops below threshold (%)
+  cpu_low_threshold: 50.0
+  # Auto-downgrade when queue depth exceeds threshold
+  queue_high_threshold: 100
+  # Auto-recover when queue depth clears below threshold
+  queue_low_threshold: 15
+
+storage:
+  # Offline SQLite outbox database path
+  db_path: "edge/data/outbox.db"
+  # Local batch schedule and inventory cache
+  cache_path: "edge/data/schedule_cache.json"
+  # Privacy-preserving blurred evidence thumbnail directory
+  evidence_dir: "edge/data/evidence"
+  # Rolling log file path
+  log_file: "edge/data/edge.log"
+  # Daily upload byte budget (50 MB default)
+  daily_budget_bytes: 52428800

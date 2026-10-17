@@ -24,6 +24,7 @@ class PersonCountObject(BaseModel):
 # --- Detection Event Schemas (Matches Phase 1 JSONL output format) ---
 
 class DetectionEventCreate(BaseModel):
+    event_id: Optional[str] = None  # UUID for idempotent edge sync
     timestamp: datetime
     camera_id: str
     zone: str
@@ -52,6 +53,7 @@ class DetectionEventCreate(BaseModel):
 
 class DetectionEventOut(BaseModel):
     id: int
+    event_id: Optional[str] = None
     camera_id: str
     zone: str
     timestamp: datetime
@@ -61,6 +63,15 @@ class DetectionEventOut(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CameraHeartbeatPayload(BaseModel):
+    queue_depth: Optional[int] = 0
+    last_sample_time: Optional[datetime] = None
+    cpu_percent: Optional[float] = None
+    memory_percent: Optional[float] = None
+    agent_version: Optional[str] = "1.0.0"
+
 
 
 # --- Centre Schemas ---
@@ -117,6 +128,7 @@ class CameraOut(CameraBase):
     id: str
     status: str
     last_seen_at: Optional[datetime] = None
+    edge_metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
