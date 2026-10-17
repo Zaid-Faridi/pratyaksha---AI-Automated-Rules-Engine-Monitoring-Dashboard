@@ -1,0 +1,333 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import {
+  Building2,
+  AlertTriangle,
+  Users,
+  VideoOff,
+  CheckCircle2,
+  TrendingUp,
+  ArrowRight,
+  ShieldAlert,
+} from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+  AreaChart,
+  Area,
+  CartesianGrid,
+} from 'recharts';
+
+import { api } from '../api/client';
+import { KpiCard } from '../components/common/KpiCard';
+import { ScoreRing } from '../components/common/ScoreRing';
+import { StatusBadge } from '../components/common/StatusBadge';
+import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
+import { ErrorState } from '../components/common/ErrorState';
+
+export const OverviewPage: React.FC = () => {
+  const { data: summary, isLoading, isError, refetch } = useQuery({
+    queryKey: ['dashboardSummary'],
+    queryFn: () => api.getDashboardSummary(),
+    refetchInterval: 30000, // Auto-refresh every 30s
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <LoadingSkeleton rows={1} className="h-28" />
+          <LoadingSkeleton rows={1} className="h-28" />
+          <LoadingSkeleton rows={1} className="h-28" />
+          <LoadingSkeleton rows={1} className="h-28" />
+          <LoadingSkeleton rows={1} className="h-28" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <LoadingSkeleton rows={1} className="h-80" />
+          <LoadingSkeleton rows={1} className="h-80" />
+        </div>
+        <LoadingSkeleton rows={5} className="h-14" />
+      </div>
+    );
+  }
+
+  if (isError || !summary) {
+    return <ErrorState onRetry={() => refetch()} />;
+  }
+
+  // Format alerts data for BarChart
+  const alertChartData = Object.entries(summary.alerts_by_type || {}).map(([type, count]) => ({
+    name: type.replace(/_/g, ' '),
+    rawType: type,
+    count,
+  }));
+
+  const getAlertColor = (type: string) => {
+    if (type.includes('TAMPER') || type.includes('DEFICIT') || type.includes('GAP')) return '#EF4444';
+    if (type.includes('MISMATCH') || type.includes('OFFLINE')) return '#F97316';
+    return '#38BDF8';
+  };
+
+  return (
+    <div className="space-y-7 pb-10">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+          Monitoring & Compliance Overview
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Real-time video analytics for government-sanctioned skilling centres (MSDE Problem Statement 26245).
+        </p>
+      </div>
+
+      {/* 5 Top KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <KpiCard
+          title="Monitored Centres"
+          value={summary.total_centres}
+          subtitle="Across 5 Indian States"
+          icon={Building2}
+          variant="default"
+        />
+
+        <div className="rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+              Avg Compliance
+            </span>
+            <span className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight mt-1 block">
+              {summary.average_compliance_score.toFixed(1)}%
+            </span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              National Benchmark
+            </span>
+          </div>
+          <ScoreRing score={summary.average_compliance_score} size="md" />
+        </div>
+
+        <KpiCard
+          title="Open Alerts"
+          value={summary.open_alerts_count}
+          subtitle={`${summary.alerts_by_severity?.CRITICAL || 0} critical severity`}
+          icon={AlertTriangle}
+          variant={summary.open_alerts_count > 0 ? 'critical' : 'success'}
+        />
+
+        <KpiCard
+          title="Attendance Mismatches"
+          value={summary.attendance_mismatches_today}
+          subtitle="Batches below 70% threshold"
+          icon={Users}
+          variant={summary.attendance_mismatches_today > 0 ? 'warning' : 'success'}
+        />
+
+        <KpiCard
+          title="Cameras Offline"
+          value={summary.offline_cameras}
+          subtitle={`${summary.online_cameras} of ${summary.total_cameras} operational`}
+          icon={VideoOff}
+          variant={summary.offline_cameras > 0 ? 'critical' : 'success'}
+        />
+      </div>
+
+      {/* Charts Section: Alerts Breakdown & Compliance Trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Alerts by Type */}
+        <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-gov-600" />
+                Active Alerts Breakdown
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Categorized by compliance violation type
+              </p>
+            </div>
+            <Link
+              to="/alerts"
+              className="text-xs font-semibold text-gov-600 hover:text-gov-700 dark:text-gov-400 inline-flex items-center gap-1"
+            >
+              View Queue <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={alertChartData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.2} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 10 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0F172A',
+                    borderColor: '#334155',
+                    borderRadius: '8px',
+                    color: '#F8FAFC',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {alertChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={getAlertColor(entry.rawType)} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* 7-Day Compliance Trend */}
+        <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <TrendingUp className="w-4 h-4 text-teal-600" />
+                7-Day Compliance Index Trend
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Weighted composite score average across centres
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+              Target &ge; 85%
+            </span>
+          </div>
+
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={summary.compliance_trend} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="complianceGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0D9488" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#0D9488" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                <YAxis domain={[50, 100]} tick={{ fontSize: 11 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0F172A',
+                    borderColor: '#334155',
+                    borderRadius: '8px',
+                    color: '#F8FAFC',
+                    fontSize: '12px',
+                  }}
+                  formatter={(val: number) => [`${val.toFixed(1)}%`, 'Average Score']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="average_score"
+                  stroke="#0D9488"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#complianceGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Non-Compliant Centres Table (User requirement 1: Table of least compliant centres) */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              Priority Focus: Least Compliant Skilling Centres
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Ranked ascending by compliance deficit requiring administrative audit
+            </p>
+          </div>
+          <Link
+            to="/centres"
+            className="text-xs font-semibold text-gov-600 hover:text-gov-700 dark:text-gov-400 inline-flex items-center gap-1"
+          >
+            All Centres <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">
+                <th className="p-3.5">Centre Name</th>
+                <th className="p-3.5 text-center">Compliance Score</th>
+                <th className="p-3.5 text-center">Attendance Rate</th>
+                <th className="p-3.5 text-center">Infra Availability</th>
+                <th className="p-3.5 text-center">Camera Uptime</th>
+                <th className="p-3.5 text-center">Open Alerts</th>
+                <th className="p-3.5 text-center">Audit Status</th>
+                <th className="p-3.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+              {summary.top_non_compliant_centres.map((centre) => (
+                <tr key={centre.centre_id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                  <td className="p-3.5 font-medium text-slate-900 dark:text-slate-100">
+                    <Link
+                      to={`/centres/${centre.centre_id}`}
+                      className="hover:text-gov-600 dark:hover:text-gov-400 font-semibold"
+                    >
+                      {centre.centre_name}
+                    </Link>
+                    <span className="block text-[10px] text-slate-400 font-normal">ID: {centre.centre_id}</span>
+                  </td>
+                  <td className="p-3.5 text-center">
+                    <div className="inline-flex items-center gap-2">
+                      <ScoreRing score={centre.compliance_score} size="sm" />
+                      <span className="font-bold text-xs">{centre.compliance_score.toFixed(1)}%</span>
+                    </div>
+                  </td>
+                  <td className="p-3.5 text-center font-medium">
+                    <span className={centre.attendance_rate < 0.70 ? 'text-rose-600 font-bold' : ''}>
+                      {(centre.attendance_rate * 100).toFixed(0)}%
+                    </span>
+                  </td>
+                  <td className="p-3.5 text-center font-medium">
+                    <span className={centre.infrastructure_availability_rate < 0.85 ? 'text-amber-600 font-bold' : ''}>
+                      {(centre.infrastructure_availability_rate * 100).toFixed(0)}%
+                    </span>
+                  </td>
+                  <td className="p-3.5 text-center font-medium">
+                    <span className={centre.camera_uptime_rate < 0.50 ? 'text-rose-600 font-bold' : ''}>
+                      {(centre.camera_uptime_rate * 100).toFixed(0)}%
+                    </span>
+                  </td>
+                  <td className="p-3.5 text-center">
+                    {centre.open_alerts_count > 0 ? (
+                      <span className="inline-flex px-2 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                        {centre.open_alerts_count}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-xs">0</span>
+                    )}
+                  </td>
+                  <td className="p-3.5 text-center">
+                    <StatusBadge status={centre.summary_status} />
+                  </td>
+                  <td className="p-3.5 text-right">
+                    <Link
+                      to={`/centres/${centre.centre_id}`}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-gov-600 hover:text-gov-800 dark:text-gov-400 dark:hover:text-gov-300"
+                    >
+                      Audit <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};

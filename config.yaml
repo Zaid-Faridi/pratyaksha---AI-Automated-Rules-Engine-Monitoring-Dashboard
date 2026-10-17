@@ -1,0 +1,83 @@
+# ==============================================================================
+# Pratyaksha Phase 1: AI Video Analytics Detection Pipeline Configuration
+# Problem Statement: MSDE 26245 (Skill Development Monitoring)
+# ==============================================================================
+
+pipeline:
+  # Sampling rate: process one frame every N seconds
+  # Default: 30s. For testing or short demos, use 1 or 2s.
+  sample_interval_sec: 2
+
+  # Rolling median window size K for smoothing occlusion and dynamic movement
+  smoothing_window_k: 5
+
+  # Ultralytics YOLO model (nano model for speed & efficiency)
+  model_name: "yolov8n.pt"
+
+  # Detection confidence threshold (0.0 to 1.0)
+  confidence_threshold: 0.25
+
+  # Device: "cpu", "mps" (Apple Silicon), "cuda", or "" (auto-detect)
+  device: ""
+
+  # Privacy setting: whether to save visual diagnostic frames
+  # DEFAULT MUST BE FALSE. No facial crops or person images are ever stored.
+  save_annotated_frames: false
+
+  # Directory to store anonymized frames if enabled
+  annotated_dir: "outputs/frames"
+
+  # JSON Lines output file destination
+  output_jsonl: "outputs/detections.jsonl"
+
+  # Privacy blur strength for detected persons (Gaussian blur kernel size, odd number)
+  person_blur_strength: 35
+
+# Map domain infrastructure item names to standard COCO object classes detected by YOLO
+# Note: 'bench' and 'dining table' serve as proxies for classroom workbenches.
+class_mapping:
+  person:
+    - "person"
+  chair:
+    - "chair"
+  bench:
+    - "bench"
+    - "dining table"
+  workbench:
+    - "dining table"
+    - "bench"
+  computer:
+    - "laptop"
+    - "tv"
+  laptop:
+    - "laptop"
+  screen:
+    - "tv"
+
+# Camera stream and Zone ROI configurations
+cameras:
+  cam_01:
+    # Path to video file or RTSP stream url (e.g. "rtsp://user:pass@ip:port/stream")
+    source: "sample_data/skilling_center_demo.mp4"
+    zones:
+      classroom:
+        # Polygon points in [x, y] pixel coordinates
+        polygon:
+          - [40, 40]
+          - [620, 40]
+          - [620, 680]
+          - [40, 680]
+        expected_infrastructure:
+          chair: 6
+          bench: 2
+          computer: 4
+
+      workshop:
+        polygon:
+          - [660, 40]
+          - [1240, 40]
+          - [1240, 680]
+          - [660, 680]
+        expected_infrastructure:
+          workbench: 2
+          chair: 4
