@@ -18,7 +18,9 @@ from app.routers import (
     dashboard,
     events,
     inventory,
+    stream,
 )
+from app.streaming import stream_manager
 
 
 @asynccontextmanager
@@ -26,7 +28,8 @@ async def lifespan(app: FastAPI):
     # Startup: ensure database tables exist
     init_db()
     yield
-    # Shutdown logic if any
+    # Shutdown logic: release all camera stream sessions
+    stream_manager.stop_all()
 
 
 app = FastAPI(
@@ -56,6 +59,7 @@ app.include_router(events.router)
 app.include_router(attendance.router)
 app.include_router(centres.router)
 app.include_router(cameras.router)
+app.include_router(stream.router)
 app.include_router(inventory.router)
 app.include_router(batches.router)
 app.include_router(alerts.router)

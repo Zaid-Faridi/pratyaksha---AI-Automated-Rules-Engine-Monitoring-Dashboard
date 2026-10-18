@@ -9,7 +9,7 @@
 [![React: 18](https://img.shields.io/badge/React-18.3-61DAFB.svg)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg)]()
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg)]()
-[![Tests: 30 Passing](https://img.shields.io/badge/Tests-30%20Passed-success.svg)]()
+[![Tests: 36 Passing](https://img.shields.io/badge/Tests-36%20Passed-success.svg)]()
 
 ---
 
@@ -176,6 +176,38 @@ python -m edge.agent --config edge/edge_config.yaml --profile normal
 ```bash
 docker compose up -d
 ```
+
+---
+
+### Option 4: Live Video Analytics & On-Demand Stream Demo
+
+Pratyaksha includes an on-demand, privacy-preserving live video streaming monitor that demonstrates real-time edge annotation and instant attendance reconciliation.
+
+1. **Start Backend & Frontend Services:**
+   ```bash
+   # Terminal 1: Backend with streaming endpoints
+   cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8088
+
+   # Terminal 2: React Dashboard
+   cd frontend && npm run dev -- --port 5188
+   ```
+
+2. **Access the Live Monitor Page:**
+   - Open [http://localhost:5188/live](http://localhost:5188/live) in your web browser, or click **"Live Monitor"** in the sidebar.
+
+3. **Key Features to Test in Live Demo:**
+   - **Start on Connect / Stop on Disconnect:** The background camera capture and inference worker runs **strictly while a viewer is connected**. The moment you close the tab or switch cameras, the worker halts and frees all hardware capture resources.
+   - **Zero Raw Video Storage:** All persons are heavily blurred directly at the edge before encoding. Only anonymized, bounded frames (max 640px, 7.5 FPS) reach the browser.
+   - **Interactive Quota Simulator:** Use the claimed quota slider in the top bar:
+     - Set claimed attendance to **20**: Current headcount (5) is $25\%$ of quota ($<70\%$ threshold) $\rightarrow$ the progress gauge immediately turns **warning crimson** and a real-time `ATTENDANCE_MISMATCH` alert appears on the live ticker without page refresh.
+     - Set claimed attendance to **6**: Current headcount (5) is $83\%$ of quota ($\ge 70\%$) $\rightarrow$ the gauge switches to **compliant emerald green**.
+   - **Low-Bandwidth Snapshot Mode:** Click *"Snapshot Mode (7s)"* in the top right to simulate low-bandwidth rural deployments where periodic still frames are polled every 7 seconds instead of a continuous MJPEG stream.
+   - **Centre Streaming Policy Flag:** Click *"Centre Privacy Policy"* to toggle live streaming on/off. When turned off, streaming is forbidden by compliance policy with zero video transmission allowed.
+
+4. **Run Streaming & Viewer Lifecycle Tests:**
+   ```bash
+   pytest backend/tests/test_streaming.py -v
+   ```
 
 ---
 

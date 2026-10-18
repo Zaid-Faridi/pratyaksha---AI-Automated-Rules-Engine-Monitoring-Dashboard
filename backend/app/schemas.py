@@ -83,6 +83,7 @@ class CentreBase(BaseModel):
     lat: float
     lng: float
     scheme: str = "PMKVY 4.0"
+    live_streaming_enabled: bool = True
 
 
 class CentreCreate(CentreBase):
@@ -96,6 +97,7 @@ class CentreUpdate(BaseModel):
     lat: Optional[float] = None
     lng: Optional[float] = None
     scheme: Optional[str] = None
+    live_streaming_enabled: Optional[bool] = None
 
 
 class CentreOut(CentreBase):

@@ -10,14 +10,69 @@ export type AlertStatus = 'open' | 'verified' | 'dismissed' | 'auto_resolved';
 export type ComplianceStatus = 'COMPLIANT' | 'NEEDS_ATTENTION' | 'NON_COMPLIANT';
 
 export interface Centre {
-  id: str;
-  name: str;
-  state: str;
-  district: str;
+  id: string;
+  name: string;
+  state: string;
+  district: string;
   lat: number;
   lng: number;
-  scheme: str;
-  created_at: str;
+  scheme: string;
+  live_streaming_enabled?: boolean;
+  created_at: string;
+}
+
+export interface LiveZoneTelemetry {
+  raw_count: number;
+  smoothed_count: number;
+  claimed_attendance: number;
+  attendance_ratio: number;
+  attendance_status: 'MATCH' | 'MISMATCH';
+}
+
+export interface LiveEquipmentStatus {
+  zone: string;
+  item: string;
+  expected: number;
+  detected: number;
+  status: 'MATCH' | 'DEFICIT' | 'SURPLUS';
+}
+
+export interface LiveAlertTickerItem {
+  id: string;
+  type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical' | 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  message: string;
+  timestamp: string;
+}
+
+export interface LiveTelemetryPayload {
+  camera_id: string;
+  centre_id: string;
+  timestamp: string;
+  fps: number;
+  status: 'online' | 'offline' | 'tampered';
+  zones: Record<string, LiveZoneTelemetry>;
+  total_persons_detected: number;
+  claimed_attendance: number;
+  active_batch?: {
+    name: string;
+    zone: string;
+    claimed_attendance: number;
+  };
+  equipment: LiveEquipmentStatus[];
+  recent_alerts: LiveAlertTickerItem[];
+}
+
+export interface LiveCameraStatus {
+  camera_id: string;
+  centre_id: string;
+  camera_status: string;
+  live_streaming_allowed: boolean;
+  is_streaming: boolean;
+  viewer_count: number;
+  current_fps: number;
+  claimed_attendance: number;
+  latest_telemetry?: LiveTelemetryPayload | null;
 }
 
 export interface Camera {

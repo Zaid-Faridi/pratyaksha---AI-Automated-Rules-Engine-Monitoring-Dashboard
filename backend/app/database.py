@@ -50,6 +50,10 @@ def init_db() -> None:
         except Exception:
             pass
         try:
+            conn.execute(text("ALTER TABLE centres ADD COLUMN live_streaming_enabled BOOLEAN DEFAULT 1"))
+        except Exception:
+            pass
+        try:
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_detection_events_event_id ON detection_events (event_id)"))
         except Exception:
             pass
