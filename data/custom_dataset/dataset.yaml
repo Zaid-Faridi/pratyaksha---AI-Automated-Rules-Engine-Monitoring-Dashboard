@@ -1,0 +1,19 @@
+# Pratyaksha Vocational Infrastructure Custom Dataset Definition
+# Used by scripts/train_custom_yolo.py to train fine-tuned equipment detectors
+
+path: ../data/custom_dataset  # dataset root dir (relative or absolute)
+train: images/train           # train images
+val: images/val               # val images
+test: images/val              # optional test images
+
+# Classes covering standard skilling lab infrastructure & workshop items
+names:
+  0: person
+  1: workbench
+  2: lathe
+  3: welding_machine
+  4: sewing_machine
+  5: drill_press
+  6: computer
+  7: chair
+  8: toolbox

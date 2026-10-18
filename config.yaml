@@ -54,6 +54,24 @@ class_mapping:
   screen:
     - "tv"
 
+# Open-Vocabulary & Custom Equipment Detection Configuration
+custom_detector:
+  enabled: true
+  model_type: "auto"  # "auto", "yolo-world", "custom-yolo", or "standard-yolo"
+  model_path: "yolov8n.pt"  # Swap in "outputs/models/custom_skilling_yolo/weights/best.pt" when fine-tuned
+  confidence_threshold: 0.25
+  # Open-vocabulary text prompts configured per zone without model retraining:
+  open_vocabulary_classes:
+    - "person"
+    - "workbench"
+    - "lathe"
+    - "welding machine"
+    - "sewing machine"
+    - "drill press"
+    - "computer"
+    - "chair"
+    - "toolbox"
+
 # Camera stream and Zone ROI configurations
 cameras:
   cam_01:

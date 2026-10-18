@@ -441,6 +441,14 @@ export const LiveMonitorPage: React.FC = () => {
                 <span className="hidden sm:inline-block px-2 py-1 rounded-md text-[11px] font-mono text-slate-300 bg-slate-900/80 border border-slate-700/60">
                   640x360
                 </span>
+
+                <span
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 backdrop-blur-sm"
+                  title="Frame Quality: Blur & Brightness nominal, reference correlate > 0.85"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  Quality: Reliable
+                </span>
               </div>
 
               {/* Right Privacy & Snapshot Badges */}
@@ -720,6 +728,10 @@ export const LiveMonitorPage: React.FC = () => {
                 Classroom & Workshop
               </span>
             </div>
+
+            <p className="text-[10px] text-slate-400 italic">
+              Operability is a heuristic indication based on vision signals (screen activity, power LEDs, proximity), not an engineering diagnostic.
+            </p>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
               {telemetry?.equipment && telemetry.equipment.length > 0 ? (

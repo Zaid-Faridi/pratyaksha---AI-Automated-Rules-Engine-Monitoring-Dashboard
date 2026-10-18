@@ -126,3 +126,27 @@ Pratyaksha is **designed to align with** the foundational principles codified in
 2. **Principle of Data Minimisation (Section 6):** Only non-identifiable numerical metrics are recorded. Raw biometric and facial attributes are never captured or stored.
 3. **Principle of Storage Limitation (Section 8):** Automatic rolling purge of edge outbox records and 90-day retention of cloud audit logs.
 4. **Security Safeguards (Section 8(5)):** Strict role-based access, API authentication, and pre-blurring safeguards prevent unauthorized personal data exposure.
+
+---
+
+## 10. Privacy Protections in Enhanced Functional Modules
+
+### A. Ministry-Ready Reports (DPDP Act Aggregate Mandate)
+All exported ministerial compliance reports (CSV and PDF) are generated exclusively from high-level, aggregate spatial metrics:
+- Attendance is recorded strictly as macroscopic counts (Claimed Headcount vs. Detected Headcount).
+- Equipment status is reported as counts per sanctioned category (`operational`, `uncertain`, `non_operational`, `missing`).
+- Alert resolution histories document administrative decisions by designated review officers.
+- **Statutory Notice:** Every exported document embeds the mandatory legal declaration:  
+  *“Generated automatically by Pratyaksha AI Monitoring Engine. All figures are based strictly on aggregate spatial counts with zero biometric or identifiable trainee data in compliance with the Digital Personal Data Protection Act (DPDPA), 2023.”*
+
+### B. Frame Quality Gating & Optical Health Assessment
+Quality gating algorithms inspect video quality to prevent distorted footage from triggering erroneous fraud allegations:
+- Evaluates four non-biometric pixel statistics: Gaussian blur (Laplacian variance), luminance distribution, standard deviation contrast, and structural scene drift against an empty calibration frame.
+- **Zero Facial or Behavioral Processing:** Quality analysis operates strictly over raw matrix pixel values. No facial landmarking, skin-tone analysis, or person-specific features are computed.
+- **Unreliable Sample Exclusion:** Unreliable frames are marked `is_reliable = false` and discarded from rule evaluation, safeguarding centres against false punitive actions caused by bad weather, dust, or lighting fluctuations.
+
+### C. Apparent Operability Assessment vs. Worker Surveillance
+Equipment operability assessment determines whether sanctioned machines appear ready for training:
+- **Macro-Spatial Heuristics Only:** Uses visual indicators such as screen luminance variance on monitor panels, proximity of human foot-points to machinery workspaces, and detection of heavy tarps or clutter blocking chairs or workbenches.
+- **No Worker Performance Monitoring:** Pratyaksha does not log individual productivity, keystrokes, facial fatigue, or personal work patterns.
+- **Heuristic Disclaimer:** Operability indicators are visual heuristics of apparent readiness and explicitly do not constitute an engineering diagnostic or maintenance certification.

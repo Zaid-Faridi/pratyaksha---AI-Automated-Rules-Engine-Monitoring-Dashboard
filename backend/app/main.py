@@ -12,12 +12,14 @@ from app.database import init_db
 from app.routers import (
     alerts,
     attendance,
+    audit,
     batches,
     cameras,
     centres,
     dashboard,
     events,
     inventory,
+    reports,
     stream,
 )
 from app.streaming import stream_manager
@@ -63,6 +65,8 @@ app.include_router(stream.router)
 app.include_router(inventory.router)
 app.include_router(batches.router)
 app.include_router(alerts.router)
+app.include_router(audit.router)
+app.include_router(reports.router)
 app.include_router(dashboard.router)
 
 

@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     camera_offline_timeout_minutes: int = 15
     # Camera tamper: sudden drop in detected objects >= 80% while batch is active
     camera_tamper_drop_ratio: float = 0.80
+    # Camera quality health: flag POOR_CAMERA_QUALITY if N consecutive samples are unreliable
+    quality_consecutive_unreliable_samples: int = 3
+
+    # Operability assessment: flag NON_FUNCTIONAL_EQUIPMENT if item is non-operational for M samples
+    operability_consecutive_samples: int = 3
 
     # Compliance score weights (summing to 1.0)
     compliance_weight_attendance: float = 0.45

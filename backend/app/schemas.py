@@ -14,6 +14,8 @@ class InfrastructureItem(BaseModel):
     expected: int
     detected: int
     status: str  # "MATCH", "DEFICIT", "SURPLUS"
+    operability: Optional[str] = "operational"  # "operational", "uncertain", "non_operational", "missing"
+    signals: Optional[Dict[str, Any]] = None
 
 
 class PersonCountObject(BaseModel):
@@ -34,9 +36,10 @@ class DetectionEventCreate(BaseModel):
     person_count_raw: Optional[int] = None
     person_count_smoothed: Optional[int] = None
     infrastructure: List[InfrastructureItem] = Field(default_factory=list)
+    is_reliable: Optional[bool] = True
+    quality_metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
     @model_validator(mode="before")
-    @classmethod
     def normalize_person_count(cls, data: Any) -> Any:
         if isinstance(data, dict):
             pcount = data.get("person_count")
@@ -60,6 +63,8 @@ class DetectionEventOut(BaseModel):
     person_count_raw: int
     person_count_smoothed: int
     infrastructure: List[Dict[str, Any]]
+    is_reliable: bool = True
+    quality_metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -236,7 +241,28 @@ class AlertOut(BaseModel):
 class AlertUpdate(BaseModel):
     status: str = Field(description="'verified', 'dismissed', or 'open'")
     reviewed_by: Optional[str] = None
+    officer_name: Optional[str] = None
     review_notes: Optional[str] = None
+
+
+class AuditLogCreate(BaseModel):
+    centre_id: str
+    alert_id: Optional[int] = None
+    officer_name: str
+    action: str
+    notes: Optional[str] = None
+
+
+class AuditLogOut(BaseModel):
+    id: int
+    centre_id: str
+    alert_id: Optional[int] = None
+    officer_name: str
+    action: str
+    notes: Optional[str] = None
+    timestamp: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Compliance & Dashboard Analytics Schemas ---

@@ -254,4 +254,49 @@ export const api = {
         body: JSON.stringify({ enabled }),
       }
     ),
+
+  // --- Centre Portal & Claimed Attendance Submission ---
+  getBatches: (centreId?: string) => {
+    const query = centreId ? `?centre_id=${encodeURIComponent(centreId)}` : '';
+    return request<any[]>(`/batches${query}`);
+  },
+
+  submitAttendance: (payload: { centre_id: string; batch_id: string; date: string; claimed_count: number }) =>
+    request<any>('/attendance', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  // --- Audit Trail ---
+  getAuditLogs: (filters?: { centre_id?: string; alert_id?: number; officer_name?: string; action?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.centre_id) params.set('centre_id', filters.centre_id);
+    if (filters?.alert_id) params.set('alert_id', String(filters.alert_id));
+    if (filters?.officer_name) params.set('officer_name', filters.officer_name);
+    if (filters?.action) params.set('action', filters.action);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return request<any[]>(`/audit-logs${query}`);
+  },
+
+  getAlertAuditTrail: (alertId: number) =>
+    request<any[]>(`/alerts/${alertId}/audit-trail`),
+
+  // --- Ministry Reports Export URLs ---
+  getReportCsvUrl: (centreId?: string, startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (centreId) params.set('centre_id', centreId);
+    if (startDate) params.set('start_date', startDate);
+    if (endDate) params.set('end_date', endDate);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return `${BASE_URL}/reports/csv${query}`;
+  },
+
+  getReportPdfUrl: (centreId?: string, startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (centreId) params.set('centre_id', centreId);
+    if (startDate) params.set('start_date', startDate);
+    if (endDate) params.set('end_date', endDate);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return `${BASE_URL}/reports/pdf${query}`;
+  },
 };

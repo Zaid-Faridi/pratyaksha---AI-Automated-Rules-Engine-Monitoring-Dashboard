@@ -6,6 +6,8 @@ import {
   MapPin,
   Building2,
   AlertTriangle,
+  ClipboardCheck,
+  History,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -20,6 +22,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ openAlertsCount = 0 }) => {
     { to: '/map', label: 'Map View', icon: MapPin },
     { to: '/centres', label: 'Centres List', icon: Building2 },
     { to: '/alerts', label: 'Alert Queue', icon: AlertTriangle, badge: openAlertsCount },
+    { to: '/portal', label: 'Centre Portal', icon: ClipboardCheck },
+    { to: '/audit', label: 'Audit Trail', icon: History },
     { to: '/privacy', label: 'Privacy Policy', icon: ShieldCheck },
   ];
 

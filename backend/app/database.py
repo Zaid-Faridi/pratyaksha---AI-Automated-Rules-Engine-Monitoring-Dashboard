@@ -54,6 +54,14 @@ def init_db() -> None:
         except Exception:
             pass
         try:
+            conn.execute(text("ALTER TABLE detection_events ADD COLUMN is_reliable BOOLEAN DEFAULT 1"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE detection_events ADD COLUMN quality_metrics JSON DEFAULT '{}'"))
+        except Exception:
+            pass
+        try:
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_detection_events_event_id ON detection_events (event_id)"))
         except Exception:
             pass

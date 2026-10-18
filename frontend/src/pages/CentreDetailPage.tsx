@@ -122,8 +122,8 @@ export const CentreDetailPage: React.FC = () => {
         </div>
       )}
 
-      {/* Back button & Breadcrumb */}
-      <div>
+      {/* Back button & Breadcrumb & Report Exports */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           to="/centres"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition"
@@ -131,6 +131,25 @@ export const CentreDetailPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           Back to Centres Directory
         </Link>
+
+        <div className="flex items-center gap-2">
+          <a
+            href={api.getReportCsvUrl(id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition shadow-sm"
+          >
+            Export Centre CSV
+          </a>
+          <a
+            href={api.getReportPdfUrl(id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gov-600 hover:bg-gov-700 text-white transition shadow-sm"
+          >
+            Official Centre PDF
+          </a>
+        </div>
       </div>
 
       {/* Header Banner with Score & Breakdown */}
@@ -286,6 +305,7 @@ export const CentreDetailPage: React.FC = () => {
                     <th className="p-2.5">Item Name</th>
                     <th className="p-2.5 text-center">Sanctioned</th>
                     <th className="p-2.5 text-center">Detected</th>
+                    <th className="p-2.5 text-center">Operability</th>
                     <th className="p-2.5 text-right">Status</th>
                   </tr>
                 </thead>
@@ -297,6 +317,19 @@ export const CentreDetailPage: React.FC = () => {
                         <td className="p-2.5 capitalize font-medium">{row.item}</td>
                         <td className="p-2.5 text-center font-bold text-slate-600 dark:text-slate-300">{row.expected}</td>
                         <td className="p-2.5 text-center font-bold">{row.detected}</td>
+                        <td className="p-2.5 text-center">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                              row.operability === 'non_operational'
+                                ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                                : row.operability === 'uncertain'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            }`}
+                          >
+                            {row.operability || 'operational'}
+                          </span>
+                        </td>
                         <td className="p-2.5 text-right">
                           <StatusBadge status={row.status} />
                         </td>
@@ -304,7 +337,7 @@ export const CentreDetailPage: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="p-6 text-center text-slate-400">
+                      <td colSpan={6} className="p-6 text-center text-slate-400">
                         No sanctioned inventory items defined for this centre.
                       </td>
                     </tr>
@@ -312,6 +345,10 @@ export const CentreDetailPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            <p className="text-[10px] text-slate-400 italic mt-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+              * Operability is a heuristic indication based on computer vision signals (active screen illumination, power LED regions, tool interaction, and unobstructed seating). Not an electrical or mechanical diagnostic.
+            </p>
           </div>
         </div>
       </div>
@@ -335,9 +372,15 @@ export const CentreDetailPage: React.FC = () => {
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-xs text-slate-900 dark:text-slate-100 font-mono">
-                      {cam.id}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-slate-900 dark:text-slate-100 font-mono">
+                        {cam.id}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Quality: Reliable
+                      </span>
+                    </div>
                     <StatusBadge status={cam.status.toUpperCase()} />
                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 mb-3">

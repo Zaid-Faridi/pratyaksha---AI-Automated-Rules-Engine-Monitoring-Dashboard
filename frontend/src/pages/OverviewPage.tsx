@@ -77,13 +77,39 @@ export const OverviewPage: React.FC = () => {
   return (
     <div className="space-y-7 pb-10">
       {/* Page Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-          Monitoring & Compliance Overview
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Real-time video analytics for government-sanctioned skilling centres.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            Monitoring & Compliance Overview
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Real-time video analytics for government-sanctioned skilling centres.
+          </p>
+        </div>
+
+        {/* Ministry-Ready Report Exports */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <a
+            href={api.getReportCsvUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+          >
+            <span>Export CSV Report</span>
+          </a>
+          <a
+            href={api.getReportPdfUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-gov-600 hover:bg-gov-700 text-white shadow-sm transition"
+          >
+            <span>Official Ministry PDF</span>
+          </a>
+        </div>
+      </div>
+
+      <div className="text-[11px] text-slate-400 dark:text-slate-500 italic -mt-4">
+        * Official reports compiled strictly from aggregate entity headcounts. No facial biometrics or personally identifiable data is recorded.
       </div>
 
       {/* 5 Top KPI Cards */}

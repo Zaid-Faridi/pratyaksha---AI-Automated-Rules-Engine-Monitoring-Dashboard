@@ -222,6 +222,8 @@ export const AlertQueuePage: React.FC = () => {
           <option value="all">All Violation Types</option>
           <option value="ATTENDANCE_MISMATCH">Attendance Mismatch</option>
           <option value="INFRASTRUCTURE_GAP">Infrastructure Gap</option>
+          <option value="NON_FUNCTIONAL_EQUIPMENT">Non-Functional Equipment</option>
+          <option value="POOR_CAMERA_QUALITY">Poor Camera Quality / Occluded</option>
           <option value="CAMERA_OFFLINE">Camera Offline</option>
           <option value="CAMERA_TAMPER">Camera Tampering</option>
           <option value="INFRASTRUCTURE_SURPLUS">Equipment Surplus (Info)</option>
