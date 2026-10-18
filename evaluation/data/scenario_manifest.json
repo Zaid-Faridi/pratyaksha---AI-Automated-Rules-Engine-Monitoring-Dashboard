@@ -1,0 +1,204 @@
+[
+  {
+    "scenario_id": "SCEN_01_HONEST_CLASSROOM",
+    "type": "HONEST",
+    "description": "Morning PMKVY class: 5 students claimed, 5 students present, all equipment sanctioned.",
+    "zone": "classroom",
+    "claimed_attendance": 5,
+    "true_attendance": 5,
+    "sanctioned_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "true_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "expected_attendance_alert": false,
+    "expected_inventory_alert": false,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_02_HONEST_WORKSHOP",
+    "type": "HONEST",
+    "description": "Workshop batch: 1 trainee claimed, 1 present, all workbenches available.",
+    "zone": "workshop",
+    "claimed_attendance": 1,
+    "true_attendance": 1,
+    "sanctioned_inventory": {
+      "table": 2,
+      "chair": 2
+    },
+    "true_inventory": {
+      "table": 2,
+      "chair": 2
+    },
+    "expected_attendance_alert": false,
+    "expected_inventory_alert": false,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_03_GHOST_BATCH_SEVERE",
+    "type": "ATTENDANCE_FRAUD",
+    "description": "Severe fraud: 25 students claimed on portal, but only 4 present in room (16% attendance).",
+    "zone": "classroom",
+    "claimed_attendance": 25,
+    "true_attendance": 4,
+    "sanctioned_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "true_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "expected_attendance_alert": true,
+    "expected_inventory_alert": false,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_04_ATTENDANCE_DEFICIT_MODERATE",
+    "type": "ATTENDANCE_FRAUD",
+    "description": "Discrepancy: 10 students claimed, only 5 present (50% ratio < 70% threshold).",
+    "zone": "classroom",
+    "claimed_attendance": 10,
+    "true_attendance": 5,
+    "sanctioned_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "true_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "expected_attendance_alert": true,
+    "expected_inventory_alert": false,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_05_ATTENDANCE_WITHIN_TOLERANCE",
+    "type": "HONEST",
+    "description": "Tolerable absence: 6 claimed, 5 present (83.3% ratio >= 70% threshold).",
+    "zone": "classroom",
+    "claimed_attendance": 6,
+    "true_attendance": 5,
+    "sanctioned_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "true_inventory": {
+      "chair": 6,
+      "table": 2,
+      "laptop": 2
+    },
+    "expected_attendance_alert": false,
+    "expected_inventory_alert": false,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_06_MISSING_LAPTOPS_FRAUD",
+    "type": "INFRASTRUCTURE_FRAUD",
+    "description": "Infrastructure gap: 10 laptops sanctioned, but only 2 present in lab (8 missing).",
+    "zone": "classroom",
+    "claimed_attendance": 5,
+    "true_attendance": 5,
+    "sanctioned_inventory": {
+      "laptop": 10,
+      "chair": 6,
+      "table": 2
+    },
+    "true_inventory": {
+      "laptop": 2,
+      "chair": 6,
+      "table": 2
+    },
+    "expected_attendance_alert": false,
+    "expected_inventory_alert": true,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_07_MISSING_WORKBENCHES_FRAUD",
+    "type": "INFRASTRUCTURE_FRAUD",
+    "description": "Infrastructure gap: 5 workbenches sanctioned, none present (empty room).",
+    "zone": "workshop",
+    "claimed_attendance": 1,
+    "true_attendance": 1,
+    "sanctioned_inventory": {
+      "table": 5,
+      "chair": 4
+    },
+    "true_inventory": {
+      "table": 0,
+      "chair": 2
+    },
+    "expected_attendance_alert": false,
+    "expected_inventory_alert": true,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_08_COMBINED_GHOST_AND_DEFICIT",
+    "type": "COMBINED_FRAUD",
+    "description": "Combined fraud: 20 claimed vs 3 present, AND missing sanctioned chairs and laptops.",
+    "zone": "classroom",
+    "claimed_attendance": 20,
+    "true_attendance": 3,
+    "sanctioned_inventory": {
+      "chair": 12,
+      "laptop": 6,
+      "table": 4
+    },
+    "true_inventory": {
+      "chair": 3,
+      "laptop": 0,
+      "table": 2
+    },
+    "expected_attendance_alert": true,
+    "expected_inventory_alert": true,
+    "expected_tamper_alert": false
+  },
+  {
+    "scenario_id": "SCEN_09_CAMERA_TAMPER_COVERED",
+    "type": "CAMERA_TAMPER",
+    "description": "Camera sabotage: Lens physically covered or obstructed during active training batch.",
+    "zone": "classroom",
+    "claimed_attendance": 15,
+    "true_attendance": 0,
+    "sanctioned_inventory": {
+      "chair": 6,
+      "table": 2
+    },
+    "true_inventory": {
+      "chair": 0,
+      "table": 0
+    },
+    "expected_attendance_alert": true,
+    "expected_inventory_alert": true,
+    "expected_tamper_alert": true
+  },
+  {
+    "scenario_id": "SCEN_10_HONEST_SURPLUS",
+    "type": "HONEST",
+    "description": "Surplus: 5 claimed, 6 present; 6 chairs sanctioned, 8 chairs present.",
+    "zone": "classroom",
+    "claimed_attendance": 5,
+    "true_attendance": 6,
+    "sanctioned_inventory": {
+      "chair": 6,
+      "table": 2
+    },
+    "true_inventory": {
+      "chair": 8,
+      "table": 2
+    },
+    "expected_attendance_alert": false,
+    "expected_inventory_alert": false,
+    "expected_tamper_alert": false
+  }
+]
