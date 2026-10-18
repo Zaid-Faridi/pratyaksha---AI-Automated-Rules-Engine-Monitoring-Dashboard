@@ -9,6 +9,7 @@ from sqlalchemy import (
     String,
     Integer,
     Float,
+    Boolean,
     DateTime,
     Date,
     ForeignKey,
@@ -33,6 +34,7 @@ class Centre(Base):
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
     scheme = Column(String(100), nullable=False, default="PMKVY 4.0")
+    live_streaming_enabled = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=utcnow)
 
     # Relationships

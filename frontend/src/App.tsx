@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/reac
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { OverviewPage } from './pages/OverviewPage';
+import { LiveMonitorPage } from './pages/LiveMonitorPage';
 import { MapPage } from './pages/MapPage';
 import { CentresListPage } from './pages/CentresListPage';
 import { CentreDetailPage } from './pages/CentreDetailPage';
@@ -59,6 +60,7 @@ function DashboardLayout() {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           <Routes>
             <Route path="/" element={<OverviewPage />} />
+            <Route path="/live" element={<LiveMonitorPage />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/centres" element={<CentresListPage />} />
             <Route path="/centres/:id" element={<CentreDetailPage />} />

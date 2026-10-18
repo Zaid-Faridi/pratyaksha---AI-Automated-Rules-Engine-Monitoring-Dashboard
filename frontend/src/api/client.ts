@@ -12,6 +12,7 @@ import {
   DashboardSummary,
   CentreAttendanceHistoryItem,
   ZoneInfrastructureStatusItem,
+  LiveCameraStatus,
 } from '../types';
 
 import {
@@ -215,5 +216,42 @@ export const api = {
     request<{ status: string; camera_id: string; camera_status: string; last_seen_at: string }>(
       `/cameras/${id}/heartbeat`,
       { method: 'POST' }
+    ),
+
+  getCameraStreamUrl: (cameraId: string, options?: { claimedAttendance?: number; demo?: boolean }) => {
+    const params = new URLSearchParams();
+    if (options?.claimedAttendance !== undefined) params.set('claimed_attendance', String(options.claimedAttendance));
+    if (options?.demo !== undefined) params.set('demo', String(options.demo));
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return `${BASE_URL}/cameras/${cameraId}/stream${query}`;
+  },
+
+  getCameraSnapshotUrl: (cameraId: string) => {
+    return `${BASE_URL}/cameras/${cameraId}/snapshot?t=${Date.now()}`;
+  },
+
+  getCameraTelemetryUrl: (cameraId: string) => {
+    return `${BASE_URL}/cameras/${cameraId}/telemetry`;
+  },
+
+  getCameraLiveStatus: (cameraId: string) =>
+    request<LiveCameraStatus>(`/cameras/${cameraId}/live-status`),
+
+  updateDemoConfig: (cameraId: string, payload: { claimed_attendance?: number; demo_mode?: boolean }) =>
+    request<{ status: string; camera_id: string; claimed_attendance: number; demo_mode: boolean }>(
+      `/cameras/${cameraId}/demo-config`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    ),
+
+  toggleCentreStreaming: (centreId: string, enabled: boolean) =>
+    request<{ centre_id: string; centre_name: string; live_streaming_enabled: boolean }>(
+      `/centres/${centreId}/streaming`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ enabled }),
+      }
     ),
 };

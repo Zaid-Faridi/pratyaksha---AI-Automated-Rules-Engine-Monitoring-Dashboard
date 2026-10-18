@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Video,
   MapPin,
   Building2,
   AlertTriangle,
@@ -15,6 +16,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ openAlertsCount = 0 }) => {
   const navItems = [
     { to: '/', label: 'Overview', icon: LayoutDashboard },
+    { to: '/live', label: 'Live Monitor', icon: Video },
     { to: '/map', label: 'Map View', icon: MapPin },
     { to: '/centres', label: 'Centres List', icon: Building2 },
     { to: '/alerts', label: 'Alert Queue', icon: AlertTriangle, badge: openAlertsCount },
