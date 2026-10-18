@@ -82,7 +82,7 @@ export const OverviewPage: React.FC = () => {
           Monitoring & Compliance Overview
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Real-time video analytics for government-sanctioned skilling centres (MSDE Problem Statement 26245).
+          Real-time video analytics for government-sanctioned skilling centres.
         </p>
       </div>
 

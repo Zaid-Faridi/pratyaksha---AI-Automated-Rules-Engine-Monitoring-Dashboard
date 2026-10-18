@@ -29,15 +29,10 @@ export const Header: React.FC<HeaderProps> = ({
               प्र
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg tracking-tight text-gov-900 dark:text-white">
-                  Pratyaksha
-                </span>
-                <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-gov-100 dark:bg-gov-950 text-gov-700 dark:text-gov-300 border border-gov-200 dark:border-gov-800">
-                  MSDE 26245
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              <span className="font-extrabold text-lg tracking-tight text-gov-900 dark:text-white block leading-tight">
+                Pratyaksha
+              </span>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
                 AI Skilling Centre Monitoring Unit
               </p>
             </div>

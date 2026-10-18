@@ -22,7 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ openAlertsCount = 0 }) => {
   ];
 
   return (
-    <nav className="w-full md:w-64 md:flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex md:flex-col justify-between transition-colors">
+    <nav className="w-full md:w-64 md:flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex md:flex-col transition-colors">
       <div className="w-full p-3 sm:p-4 space-y-1 flex md:flex-col gap-1 overflow-x-auto md:overflow-visible">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -49,16 +49,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ openAlertsCount = 0 }) => {
             </NavLink>
           );
         })}
-      </div>
-
-      {/* Footer Info in Sidebar */}
-      <div className="hidden md:block p-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-        <p className="font-semibold text-slate-700 dark:text-slate-300">MSDE Problem 26245</p>
-        <p className="text-[11px] text-slate-400 mt-0.5">Phase 3: Video Analytics UI</p>
-        <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
-          <span>Detection Engine</span>
-          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Active</span>
-        </div>
       </div>
     </nav>
   );
