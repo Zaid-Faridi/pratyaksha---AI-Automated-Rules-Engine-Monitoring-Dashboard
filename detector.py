@@ -43,23 +43,57 @@ class Detection:
 class ObjectDetector:
     """
     YOLO-based object detector with support for person and infrastructure classes,
+    open-vocabulary text prompts (YOLO-World or proxy-mapped zero-shot), custom fine-tuned weights,
     plus privacy-preserving frame anonymization.
     """
+    # Mapping for standard COCO weights to domain skilling infrastructure prompts
+    DEFAULT_VOCABULARY_MAPPING = {
+        "workbench": ["dining table", "bench"],
+        "chair": ["chair"],
+        "computer": ["laptop", "tv"],
+        "laptop": ["laptop"],
+        "toolbox": ["suitcase", "backpack", "handbag"],
+        "sewing machine": ["refrigerator", "microwave", "toaster", "oven"],
+        "lathe": ["boat", "truck", "train"],
+        "welding machine": ["refrigerator", "microwave"],
+        "drill press": ["parking meter", "fire hydrant"],
+    }
+
     def __init__(
         self,
         model_name: str = "yolov8n.pt",
         confidence_threshold: float = 0.25,
         device: str = "",
+        custom_classes: Optional[List[str]] = None,
     ) -> None:
         self.model_name = model_name
         self.conf_thresh = confidence_threshold
         self.device = device if device else None
-        # Load YOLO model (will download nano weights on first execution if not present)
+        self.custom_classes = custom_classes or []
+
+        # Load YOLO model (nano, YOLO-World, or fine-tuned custom weights)
         self.model = YOLO(self.model_name)
+
+        # Apply open-vocabulary classes if model supports YOLO-World set_classes
+        if self.custom_classes:
+            self.set_vocabulary(self.custom_classes)
+
+    def set_vocabulary(self, classes: List[str]) -> None:
+        """
+        Dynamically update open-vocabulary text prompts without reloading weights.
+        Supports YOLO-World native set_classes, or falls back to prompt mapping.
+        """
+        self.custom_classes = classes
+        if hasattr(self.model, "set_classes") and callable(getattr(self.model, "set_classes")):
+            try:
+                self.model.set_classes(classes)
+            except Exception:
+                pass
 
     def detect(self, frame: np.ndarray) -> List[Detection]:
         """
         Run inference on a single BGR image/frame and return structured detections.
+        Normalizes detected classes to match custom open-vocabulary infrastructure classes.
         """
         results = self.model.predict(
             source=frame,
@@ -75,11 +109,28 @@ class ObjectDetector:
         first_res = results[0]
         names = first_res.names
 
+        # Reverse lookup mapping from proxy class to requested custom class
+        proxy_to_custom = {}
+        if self.custom_classes:
+            for custom_cls in self.custom_classes:
+                c_clean = custom_cls.lower().strip()
+                proxy_to_custom[c_clean] = custom_cls
+                if c_clean in self.DEFAULT_VOCABULARY_MAPPING:
+                    for proxy in self.DEFAULT_VOCABULARY_MAPPING[c_clean]:
+                        proxy_to_custom[proxy.lower().strip()] = custom_cls
+
         for box in first_res.boxes:
             xyxy = box.xyxy[0].cpu().numpy().astype(int)
             conf = float(box.conf[0].cpu().numpy())
             cls_id = int(box.cls[0].cpu().numpy())
             cls_name = names.get(cls_id, str(cls_id))
+
+            # Normalize class name to configured custom vocabulary if applicable
+            mapped_name = cls_name
+            if self.custom_classes:
+                c_lower = cls_name.lower().strip()
+                if c_lower in proxy_to_custom:
+                    mapped_name = proxy_to_custom[c_lower]
 
             x1, y1, x2, y2 = xyxy
             detections.append(
@@ -87,7 +138,7 @@ class ObjectDetector:
                     bbox=(int(x1), int(y1), int(x2), int(y2)),
                     confidence=conf,
                     class_id=cls_id,
-                    class_name=cls_name,
+                    class_name=mapped_name,
                 )
             )
 

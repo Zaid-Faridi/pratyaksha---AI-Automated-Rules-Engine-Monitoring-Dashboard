@@ -9,7 +9,7 @@
 [![React: 18](https://img.shields.io/badge/React-18.3-61DAFB.svg)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg)]()
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg)]()
-[![Tests: 36 Passing](https://img.shields.io/badge/Tests-36%20Passed-success.svg)]()
+[![Tests: 45 Passing](https://img.shields.io/badge/Tests-45%20Passed-success.svg)]()
 
 ---
 
@@ -76,31 +76,38 @@ Pratyaksha/
 ├── demo.py                         # One-click end-to-end demonstration runner
 ├── docker-compose.yml              # Full-stack container orchestration
 ├── config.yaml                     # Camera ROI polygons and expected inventory
-├── detector.py                     # Phase 1 YOLO detector & privacy blur engine
-├── pipeline.py                     # Phase 1 time-sampled detection pipeline
-├── zones.py                        # Phase 1 polygon geometry & rolling median smoothing
-├── draw_zones.py                   # Phase 1 interactive OpenCV polygon calibration helper
+├── detector.py                     # YOLO detector with open-vocabulary prompt mapping & privacy blur
+├── operability.py                  # Apparent equipment operability heuristics & temporal tracker
+├── quality.py                      # Frame quality gating (blur, brightness, contrast, scene shift)
+├── pipeline.py                     # Time-sampled detection pipeline with quality & operability gating
+├── zones.py                        # Polygon geometry & rolling median smoothing
+├── draw_zones.py                   # Interactive OpenCV polygon calibration helper
+├── scripts/
+│   ├── train_custom_yolo.py        # Fine-tuning CLI for custom workshop infrastructure
+│   └── generate_sample_video.py    # Synthetic skilling session video generator
+├── data/custom_dataset/            # Standard YOLO layout & dataset.yaml for workshop items
 ├── sample_data/                    # Multi-zone test video & calibration images
 │
-├── backend/                        # Phase 2: FastAPI Backend & Automated Rules Engine
+├── backend/                        # FastAPI Backend & Automated Rules Engine
 │   ├── app/
 │   │   ├── main.py                 # FastAPI entrypoint, CORS, routers & startup migrations
-│   │   ├── rules_engine.py         # Compliance rules (Attendance, Inventory, Camera, Tamper)
-│   │   ├── models.py               # SQLAlchemy ORM models (Centres, Cameras, Events, Alerts)
+│   │   ├── rules_engine.py         # Compliance rules (Attendance, Operability, Quality, Tamper)
+│   │   ├── reports.py              # Ministry-ready CSV & PDF report generator (DPDP compliant)
+│   │   ├── models.py               # SQLAlchemy ORM models (Centres, Events, Alerts, AuditLogs)
 │   │   ├── schemas.py              # Pydantic validation schemas & telemetry definitions
-│   │   └── routers/                # REST endpoints: events, centres, cameras, alerts, dashboard
+│   │   └── routers/                # REST endpoints: events, centres, alerts, audit, reports, stream
 │   ├── scripts/seed.py             # Realistic national seed data (5 centres across 5 states)
-│   └── tests/                      # Automated pytest integration test suite (19 passing)
+│   └── tests/                      # Automated pytest integration test suite (27 passing)
 │
-├── frontend/                       # Phase 3: Central React Monitoring Dashboard
+├── frontend/                       # Central React Monitoring Dashboard
 │   ├── src/
-│   │   ├── pages/                  # Overview, Interactive Map, Alert Queue, Centre Detail, Privacy
-│   │   ├── components/             # KPI cards, Leaflet map, Alert triage drawer, Score rings
-│   │   ├── api/client.ts           # Central API client with Axios and fallback mockData
+│   │   ├── pages/                  # Overview, Map, Alerts, Centre Detail, Portal, Audit, Live
+│   │   ├── components/             # KPI cards, Leaflet map, Alert triage drawer with audit trail
+│   │   ├── api/client.ts           # Central API client with attendance, audit & report exports
 │   │   └── context/ThemeContext.py # Dark / Light mode UI context
 │   └── vite.config.ts              # Vite dev server with reverse proxy to port 8088
 │
-├── edge/                           # Phase 4: Low-Bandwidth Edge Agent & Deployment
+├── edge/                           # Low-Bandwidth Edge Agent & Deployment
 │   ├── agent.py                    # Resilient edge daemon with auto-reconnect backoff
 │   ├── outbox.py                   # Crash-safe SQLite WAL queue & daily byte budget tracker
 │   ├── adaptive.py                 # Dynamic CPU/queue monitor with auto-profile throttling
@@ -113,9 +120,9 @@ Pratyaksha/
 │   ├── network_simulator.py        # Outage simulation, recovery drain & byte report
 │   ├── Dockerfile                  # Slim CPU-only container running as non-root
 │   ├── pratyaksha-edge.service     # Hardened systemd service for Raspberry Pi / Mini PC
-│   └── tests/                      # Edge test suite (11 passing)
+│   └── tests/                      # Edge test suite (18 passing)
 │
-├── evaluation/                     # Phase 5: Accuracy Assessment & Benchmarking Suite
+├── evaluation/                     # Accuracy Assessment & Benchmarking Suite
 │   ├── run_all.py                  # One-command master evaluation runner
 │   ├── dataset_generator.py        # Controlled synthetic degradation generator (60 frames)
 │   ├── metrics.py                  # Detection MAE/RMSE and Rules Engine Confusion Matrix
@@ -125,7 +132,7 @@ Pratyaksha/
 │   ├── REPORT.md                   # Auto-generated comprehensive evaluation report
 │   └── charts/                     # Generated high-resolution PNG evaluation figures
 │
-└── docs/                           # Phase 5: Architecture, Privacy & Field Manuals
+└── docs/                           # Architecture, Privacy & Field Manuals
     ├── privacy_design_note.md      # Comprehensive Privacy by Design note & DPDPA alignment
     ├── architecture.md             # Multi-tier architecture and sample-to-alert sequence
     ├── deployment_guide.md         # Hardware selection, setup workflows & scaling guide
@@ -136,7 +143,39 @@ Pratyaksha/
 
 ---
 
-## 5. Quick Start (Reproducing the Demo)
+## 5. System Features & Core Capabilities
+
+### A. Custom Infrastructure Detection & Open Vocabulary
+- **Open-Vocabulary Support:** Configure arbitrary workshop equipment (`workbench`, `lathe`, `welding machine`, `sewing machine`, `drill press`, `computer`, `chair`, `toolbox`) via text prompts in `config.yaml` without model retraining.
+- **YOLO Fine-Tuning CLI:** Turnkey script `scripts/train_custom_yolo.py` with predefined directory structure `data/custom_dataset/dataset.yaml` to fine-tune custom YOLO weights and swap them in via configuration.
+- **ONNX/CPU Compatibility:** Detector interface remains identical across ONNX Runtime CPU and PyTorch backends.
+
+### B. Apparent Operability Assessment
+- **Explainable Status Heuristics:** Assigns each sanctioned equipment item a state (`operational`, `uncertain`, `non_operational`, `missing`).
+  - *Computers/Monitors:* Screen-on detection via brightness & color variance inside the monitor box.
+  - *Machines:* Powered-on light/LED indicator detection, trainee proximity interaction ($<150\text{ px}$), tool/material presence, and tarp/box occlusion checks.
+  - *Seating & Benches:* Blocked pathways or stacked storage items on chairs/tables.
+- **Temporal Stability:** Signals smoothed over $M \ge 3$ consecutive batch-hour samples before declaring non-operational status to avoid false alarms during trainee breaks.
+- **Audit Rule:** `NON_FUNCTIONAL_EQUIPMENT` alert type with configurable severity and automatic de-duplication.
+- **Heuristic Disclaimer:** Prominently stated in the UI and documentation that operability is a heuristic indication, not an engineering diagnostic.
+
+### C. Frame Quality Gating
+- **Multi-Metric Frame Quality:** Evaluates frame brightness, blur (variance of Laplacian), contrast, and scene displacement against a calibrated reference image.
+- **Unreliable-Sample Gating:** Frames failing quality thresholds are tagged `is_reliable = false` and excluded from triggering attendance or infrastructure mismatch penalties, preventing bad weather or dirt from causing false accusations.
+- **Camera Health Alerts:** Sustained low-quality samples trigger `POOR_CAMERA_QUALITY` alerts in the rules engine.
+- **UI Quality Chips:** Live frame quality chips visible on the Live Monitor and Centre Detail pages.
+
+### D. Centre Attendance Submission Portal
+- **Self-Service Web Portal (`/portal`):** Allows training centres to upload attendance by form or CSV file with immediate schema validation.
+- **Sample CSV & Demo Seeders:** Downloadable template and one-click demo seeders for testing honest ($\ge 85\%$) versus inflated/ghost attendance ($< 50\%$).
+
+### E. Ministry-Ready Reports (CSV & PDF)
+- **Comprehensive Compliance Exports:** Endpoints `GET /reports/csv` and `GET /reports/pdf` generate per-centre and national audit reports containing attendance compliance, equipment status, and alert resolution summaries.
+- **DPDPA 2023 Compliance Notice:** Every exported report carries a legal notice affirming that all data is derived from aggregate spatial headcounts with zero biometric or identifiable trainee data.
+
+### F. Officer Audit Trail
+- **Action Logging:** Every alert verification, dismissal, or status change is saved to an immutable `audit_logs` table with officer name, timestamp, and detailed justification notes.
+- **Audit Log UI (`/audit`):** Filterable audit log page and alert drawer history timeline for complete administrative transparency.
 
 ### Option 1: One-Click Demo Script (Recommended)
 

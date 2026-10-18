@@ -1,8 +1,26 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, XCircle, Clock, ShieldCheck, AlertTriangle, User, FileText, Image as ImageIcon } from 'lucide-react';
-import { Alert, AlertReviewPayload } from '../../types';
+import {
+  X,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ShieldCheck,
+  AlertTriangle,
+  User,
+  Image as ImageIcon,
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../../api/client';
+import { Alert, AlertReviewPayload, AuditLog } from '../../types';
 import { SeverityBadge } from '../common/SeverityBadge';
 import { StatusBadge } from '../common/StatusBadge';
+
+const PRESET_OFFICERS = [
+  'R. Sharma (Dy Director)',
+  'A. Verma (Inspecting Officer)',
+  'P. Patel (Zonal Auditor)',
+  'K. Singh (Technical Officer)',
+];
 
 interface AlertPanelProps {
   alert: Alert | null;
@@ -18,7 +36,14 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({
   isSubmitting = false,
 }) => {
   const [reviewNotes, setReviewNotes] = useState('');
-  const [reviewerName, setReviewerName] = useState('Monitoring Officer');
+  const [reviewerName, setReviewerName] = useState(PRESET_OFFICERS[0]);
+
+  // Query audit trail specifically for this alert
+  const { data: auditLogs = [] } = useQuery({
+    queryKey: ['alertAuditTrail', alert?.id],
+    queryFn: () => (alert ? api.getAlertAuditTrail(alert.id) : Promise.resolve([])),
+    enabled: Boolean(alert?.id),
+  });
 
   if (!alert) return null;
 
@@ -26,6 +51,7 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({
     await onReview(alert.id, {
       status,
       reviewed_by: reviewerName,
+      officer_name: reviewerName,
       review_notes: reviewNotes,
     });
     setReviewNotes('');
@@ -173,6 +199,49 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({
               </div>
             </div>
 
+            {/* Explanatory notice for heuristic alerts */}
+            {alert.type === 'NON_FUNCTIONAL_EQUIPMENT' && (
+              <div className="p-3 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/30 text-xs text-amber-800 dark:text-amber-200">
+                <span className="font-bold block mb-0.5">Apparent Operability Indication</span>
+                Heuristic assessment based on computer vision indicators (screen activity, power lights, tool/material presence, or storage occlusion). This is a compliance indication and not an electrical or mechanical diagnostic.
+              </div>
+            )}
+            {alert.type === 'POOR_CAMERA_QUALITY' && (
+              <div className="p-3 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/60 dark:bg-blue-950/30 text-xs text-blue-800 dark:text-blue-200">
+                <span className="font-bold block mb-0.5">Frame Quality Gated</span>
+                Attendance and inventory rules were temporarily suspended while camera footage remained degraded or obstructed, preventing false alerts.
+              </div>
+            )}
+
+            {/* Audit Trail List for this Alert */}
+            {auditLogs.length > 0 && (
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-slate-50/60 dark:bg-slate-950/40 space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block">
+                  Alert Audit History ({auditLogs.length})
+                </span>
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                  {auditLogs.map((log: AuditLog) => (
+                    <div key={log.id} className="text-xs bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span className="text-slate-900 dark:text-white">{log.officer_name}</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                          {log.action}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </div>
+                      {log.notes && (
+                        <p className="text-slate-700 dark:text-slate-300 mt-1 italic">
+                          "{log.notes}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Verification Action Form (only if open) */}
             {!isResolved ? (
               <div className="border-t border-slate-200 dark:border-slate-800 pt-5 space-y-3">
@@ -182,17 +251,19 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({
 
                 <div>
                   <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                    Auditor / Reviewer Name
+                    Auditor / Reviewer Officer
                   </label>
-                  <div className="relative">
-                    <User className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
-                    <input
-                      type="text"
-                      value={reviewerName}
-                      onChange={(e) => setReviewerName(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-gov-500 outline-none"
-                    />
-                  </div>
+                  <select
+                    value={reviewerName}
+                    onChange={(e) => setReviewerName(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-gov-500 outline-none"
+                  >
+                    {PRESET_OFFICERS.map((off) => (
+                      <option key={off} value={off}>
+                        {off}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

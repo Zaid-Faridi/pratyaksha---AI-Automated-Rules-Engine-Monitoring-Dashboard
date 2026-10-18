@@ -9,6 +9,8 @@ import { MapPage } from './pages/MapPage';
 import { CentresListPage } from './pages/CentresListPage';
 import { CentreDetailPage } from './pages/CentreDetailPage';
 import { AlertQueuePage } from './pages/AlertQueuePage';
+import { CentrePortalPage } from './pages/CentrePortalPage';
+import { AuditLogPage } from './pages/AuditLogPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ThemeProvider } from './context/ThemeContext';
 import { api } from './api/client';
@@ -65,6 +67,8 @@ function DashboardLayout() {
             <Route path="/centres" element={<CentresListPage />} />
             <Route path="/centres/:id" element={<CentreDetailPage />} />
             <Route path="/alerts" element={<AlertQueuePage />} />
+            <Route path="/portal" element={<CentrePortalPage />} />
+            <Route path="/audit" element={<AuditLogPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
           </Routes>
         </main>

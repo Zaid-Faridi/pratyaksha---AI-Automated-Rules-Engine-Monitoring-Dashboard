@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShieldCheck, Moon, Sun, RefreshCw, Bell, Radio } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { PratyakshaLogo } from '../common/PratyakshaLogo';
 
 interface HeaderProps {
   lastUpdated?: Date;
@@ -24,10 +25,8 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left: Branding & Emblems */}
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-gov-700 to-teal-500 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              प्र
-            </div>
+          <Link to="/" className="flex items-center gap-3 group">
+            <PratyakshaLogo size="md" className="group-hover:scale-105 transition-transform" />
             <div>
               <span className="font-extrabold text-lg tracking-tight text-gov-900 dark:text-white block leading-tight">
                 Pratyaksha

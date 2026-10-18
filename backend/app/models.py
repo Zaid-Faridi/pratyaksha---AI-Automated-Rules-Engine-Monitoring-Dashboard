@@ -118,7 +118,9 @@ class DetectionEvent(Base):
     timestamp = Column(DateTime, nullable=False, index=True)
     person_count_raw = Column(Integer, nullable=False)
     person_count_smoothed = Column(Integer, nullable=False)
-    infrastructure = Column(JSON, default=list)  # [{"item": "chair", "expected": 6, "detected": 4, "status": "DEFICIT"}]
+    infrastructure = Column(JSON, default=list)  # [{"item": "chair", "expected": 6, "detected": 4, "status": "DEFICIT", "operability": "operational", "signals": {...}}]
+    is_reliable = Column(Boolean, default=True, nullable=False)
+    quality_metrics = Column(JSON, default=dict)
     created_at = Column(DateTime, default=utcnow)
 
     # Relationships
@@ -133,7 +135,7 @@ class Alert(Base):
     camera_id = Column(String(64), nullable=True, index=True)
     zone = Column(String(100), nullable=True)
     item = Column(String(100), nullable=True)
-    type = Column(String(64), nullable=False, index=True)  # ATTENDANCE_MISMATCH, INFRASTRUCTURE_GAP, CAMERA_OFFLINE, CAMERA_TAMPER
+    type = Column(String(64), nullable=False, index=True)  # ATTENDANCE_MISMATCH, INFRASTRUCTURE_GAP, NON_FUNCTIONAL_EQUIPMENT, CAMERA_OFFLINE, CAMERA_TAMPER, POOR_CAMERA_QUALITY
     severity = Column(String(32), nullable=False, index=True)  # LOW, MEDIUM, HIGH, CRITICAL, INFO
     message = Column(Text, nullable=False)
     evidence_thumbnail_path = Column(String(255), nullable=True)  # Pre-blurred only, privacy-preserving
@@ -145,3 +147,15 @@ class Alert(Base):
 
     # Relationships
     centre = relationship("Centre", back_populates="alerts")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    centre_id = Column(String(64), nullable=False, index=True)
+    alert_id = Column(Integer, nullable=True, index=True)
+    officer_name = Column(String(255), nullable=False, index=True)
+    action = Column(String(64), nullable=False, index=True)  # VERIFIED, DISMISSED, REOPENED, NOTE_ADDED, ATTENDANCE_SUBMITTED
+    notes = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=utcnow, index=True)

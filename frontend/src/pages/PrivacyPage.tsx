@@ -1,13 +1,14 @@
 import React from 'react';
 import { ShieldCheck, EyeOff, Lock, Clock, Database, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { PratyakshaLogo } from '../components/common/PratyakshaLogo';
 
 export const PrivacyPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       {/* Page Header */}
       <div className="text-center space-y-3">
-        <div className="inline-flex p-3 bg-teal-100 dark:bg-teal-950 text-teal-600 dark:text-teal-400 rounded-full mb-1">
-          <ShieldCheck className="w-8 h-8" />
+        <div className="inline-flex justify-center mb-1">
+          <PratyakshaLogo size="xl" className="shadow-lg rounded-2xl" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
           Privacy-Preserving Video Analytics Charter

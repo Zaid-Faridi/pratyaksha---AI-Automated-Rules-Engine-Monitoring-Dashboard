@@ -35,6 +35,8 @@ export interface LiveEquipmentStatus {
   expected: number;
   detected: number;
   status: 'MATCH' | 'DEFICIT' | 'SURPLUS';
+  operability?: 'operational' | 'uncertain' | 'non_operational' | 'missing';
+  signals?: Record<string, any>;
 }
 
 export interface LiveAlertTickerItem {
@@ -134,6 +136,7 @@ export interface Alert {
 export interface AlertReviewPayload {
   status: 'verified' | 'dismissed' | 'open';
   reviewed_by?: str;
+  officer_name?: str;
   review_notes?: str;
 }
 
@@ -195,6 +198,25 @@ export interface ZoneInfrastructureStatusItem {
   expected: number;
   detected: number;
   status: 'MATCH' | 'DEFICIT' | 'SURPLUS';
+  operability?: 'operational' | 'uncertain' | 'non_operational' | 'missing';
+  signals?: Record<string, any>;
+}
+
+export interface AuditLog {
+  id: number;
+  centre_id: str;
+  alert_id?: number | null;
+  officer_name: str;
+  action: str;
+  notes?: str | null;
+  timestamp: str;
+}
+
+export interface AttendanceSubmission {
+  centre_id: str;
+  batch_id: str;
+  date: str;
+  claimed_count: number;
 }
 
 type str = string;

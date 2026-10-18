@@ -285,7 +285,160 @@ class RulesEngine:
                     db.refresh(surplus_alert)
                     alerts_raised.append(surplus_alert)
 
+    # --- Rule 2.5: Apparent Operability Assessment ---
+    @classmethod
+    def evaluate_apparent_operability(
+        cls,
+        db: Session,
+        centre_id: str,
+        camera: Camera,
+        zone: str,
+        event_time: datetime,
+        infra_items: List[Dict[str, Any]],
+    ) -> List[Alert]:
+        """
+        Apparent Operability Rule: If an item shows non-operational heuristics
+        for M consecutive samples, raise NON_FUNCTIONAL_EQUIPMENT alert.
+        Auto-resolves when operational signals resume.
+        Note: Operability is a heuristic indication, not an electrical/mechanical diagnostic.
+        """
+        alerts_raised: List[Alert] = []
+        m_samples = settings.operability_consecutive_samples
+
+        for item_data in infra_items:
+            item_name = item_data.get("item")
+            operability = item_data.get("operability", "operational")
+            signals = item_data.get("signals", {})
+
+            if not item_name:
+                continue
+
+            open_alert = db.query(Alert).filter(
+                Alert.centre_id == centre_id,
+                Alert.camera_id == camera.id,
+                Alert.zone == zone,
+                Alert.item == item_name,
+                Alert.type == "NON_FUNCTIONAL_EQUIPMENT",
+                Alert.status == "open",
+            ).first()
+
+            if operability == "non_operational":
+                recent_events = db.query(DetectionEvent).filter(
+                    DetectionEvent.camera_id == camera.id,
+                    DetectionEvent.zone == zone,
+                    DetectionEvent.timestamp <= event_time,
+                ).order_by(DetectionEvent.timestamp.desc()).limit(m_samples).all()
+
+                if len(recent_events) >= m_samples:
+                    all_non_op = True
+                    for ev in recent_events:
+                        ev_item = next((i for i in ev.infrastructure if i.get("item") == item_name), None)
+                        if not ev_item or ev_item.get("operability") != "non_operational":
+                            all_non_op = False
+                            break
+
+                    if all_non_op:
+                        sig_summary = ", ".join(f"{k}={v}" for k, v in signals.items()) if signals else "no activity"
+                        severity = "HIGH" if item_name.lower() in ["lathe", "welding machine", "drill press", "sewing machine"] else "MEDIUM"
+                        msg = (
+                            f"Heuristic non-functional alert for '{item_name}' in zone '{zone}': "
+                            f"Equipment flagged non-operational for {m_samples} consecutive samples "
+                            f"({sig_summary}). (Note: Heuristic indication based on computer vision signals, not a diagnostic)."
+                        )
+
+                        if not open_alert:
+                            new_alert = Alert(
+                                centre_id=centre_id,
+                                camera_id=camera.id,
+                                zone=zone,
+                                item=item_name,
+                                type="NON_FUNCTIONAL_EQUIPMENT",
+                                severity=severity,
+                                message=msg,
+                                status="open",
+                            )
+                            db.add(new_alert)
+                            db.commit()
+                            db.refresh(new_alert)
+                            alerts_raised.append(new_alert)
+            elif operability == "operational":
+                if open_alert:
+                    open_alert.status = "auto_resolved"
+                    open_alert.review_notes = f"Auto-resolved: Operational activity detected for '{item_name}'."
+                    open_alert.reviewed_at = utcnow()
+                    db.commit()
+
         return alerts_raised
+
+    # --- Rule 2.8: Camera Quality Gating ---
+    @classmethod
+    def evaluate_camera_quality(
+        cls,
+        db: Session,
+        centre_id: str,
+        camera: Camera,
+        zone: str,
+        event_time: datetime,
+        current_event: DetectionEvent,
+    ) -> Optional[Alert]:
+        """
+        Quality Gating Rule: If N consecutive frames are marked unreliable
+        (e.g., severe blur, brightness issue, or occlusion), raise POOR_CAMERA_QUALITY.
+        Auto-resolves when camera quality returns to reliable.
+        """
+        open_quality_alert = db.query(Alert).filter(
+            Alert.centre_id == centre_id,
+            Alert.camera_id == camera.id,
+            Alert.type == "POOR_CAMERA_QUALITY",
+            Alert.status == "open",
+        ).first()
+
+        if current_event.is_reliable:
+            if open_quality_alert:
+                open_quality_alert.status = "auto_resolved"
+                open_quality_alert.review_notes = "Auto-resolved: Camera image quality restored to normal threshold."
+                open_quality_alert.reviewed_at = utcnow()
+                db.commit()
+            return None
+
+        # Current event is unreliable. Check previous N-1 events for persistence
+        n_samples = settings.quality_consecutive_unreliable_samples
+        recent_events = db.query(DetectionEvent).filter(
+            DetectionEvent.camera_id == camera.id,
+            DetectionEvent.timestamp <= event_time,
+        ).order_by(DetectionEvent.timestamp.desc()).limit(n_samples).all()
+
+        if len(recent_events) >= n_samples and all(not e.is_reliable for e in recent_events):
+            metrics = current_event.quality_metrics or {}
+            issues = metrics.get("issues", [])
+            issues_str = ", ".join(issues) if issues else "metrics below threshold"
+
+            msg = (
+                f"Camera feed quality degraded on '{camera.id}' ({zone}): "
+                f"{n_samples} consecutive samples unreliable ({issues_str}). "
+                f"Attendance and equipment audits are gated while quality remains degraded."
+            )
+
+            if open_quality_alert:
+                open_quality_alert.message = msg
+                db.commit()
+                return open_quality_alert
+
+            new_alert = Alert(
+                centre_id=centre_id,
+                camera_id=camera.id,
+                zone=zone,
+                type="POOR_CAMERA_QUALITY",
+                severity="HIGH",
+                message=msg,
+                status="open",
+            )
+            db.add(new_alert)
+            db.commit()
+            db.refresh(new_alert)
+            return new_alert
+
+        return None
 
     # --- Rule 3: Camera Tamper or Offline ---
     @classmethod

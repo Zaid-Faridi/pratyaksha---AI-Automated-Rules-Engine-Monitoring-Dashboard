@@ -8,8 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Alert, utcnow
-from app.schemas import AlertOut, AlertUpdate
+from app.models import Alert, AuditLog, utcnow
+from app.schemas import AlertOut, AlertUpdate, AuditLogOut
 
 router = APIRouter(prefix="/alerts", tags=["Compliance Alerts"])
 
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/alerts", tags=["Compliance Alerts"])
 def list_alerts(
     centre_id: Optional[str] = None,
     camera_id: Optional[str] = None,
-    type: Optional[str] = Query(None, description="e.g. ATTENDANCE_MISMATCH, INFRASTRUCTURE_GAP, CAMERA_OFFLINE, CAMERA_TAMPER"),
+    type: Optional[str] = Query(None, description="e.g. ATTENDANCE_MISMATCH, INFRASTRUCTURE_GAP, NON_FUNCTIONAL_EQUIPMENT, CAMERA_OFFLINE, CAMERA_TAMPER, POOR_CAMERA_QUALITY"),
     severity: Optional[str] = Query(None, description="LOW, MEDIUM, HIGH, CRITICAL, INFO"),
     status: Optional[str] = Query(None, description="open, verified, dismissed, auto_resolved"),
     start_date: Optional[datetime] = None,
@@ -65,7 +65,7 @@ def update_alert_review(
     db: Session = Depends(get_db),
 ):
     """
-    Review, verify, or dismiss an alert with optional reviewer notes.
+    Review, verify, or dismiss an alert with officer identification and immutable audit log entry.
     """
     alert = db.query(Alert).filter(Alert.id == alert_id).first()
     if not alert:
@@ -78,13 +78,35 @@ def update_alert_review(
             detail=f"Invalid alert status '{payload.status}'. Allowed values: {valid_statuses}",
         )
 
+    officer = payload.officer_name or payload.reviewed_by or "Inspecting Officer"
+
     alert.status = payload.status
     alert.reviewed_at = utcnow()
-    if payload.reviewed_by:
-        alert.reviewed_by = payload.reviewed_by
+    alert.reviewed_by = officer
     if payload.review_notes:
         alert.review_notes = payload.review_notes
+
+    # Create immutable audit log record
+    audit_entry = AuditLog(
+        centre_id=alert.centre_id,
+        alert_id=alert.id,
+        officer_name=officer,
+        action=payload.status.upper(),
+        notes=payload.review_notes,
+        timestamp=utcnow(),
+    )
+    db.add(audit_entry)
 
     db.commit()
     db.refresh(alert)
     return alert
+
+
+@router.get("/{alert_id}/audit-trail", response_model=List[AuditLogOut])
+def get_alert_audit_trail(
+    alert_id: int,
+    db: Session = Depends(get_db),
+):
+    """Fetch audit history specifically for this alert."""
+    logs = db.query(AuditLog).filter(AuditLog.alert_id == alert_id).order_by(AuditLog.timestamp.desc()).all()
+    return logs

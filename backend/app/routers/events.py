@@ -93,6 +93,9 @@ async def ingest_detection_events(
         camera.status = "online"
 
         # Create DetectionEvent record
+        is_reliable = item.is_reliable if item.is_reliable is not None else True
+        quality_metrics = item.quality_metrics or {}
+
         db_event = DetectionEvent(
             event_id=item.event_id,
             camera_id=item.camera_id,
@@ -101,6 +104,8 @@ async def ingest_detection_events(
             person_count_raw=item.person_count_raw or (item.person_count.raw if item.person_count else 0),
             person_count_smoothed=item.person_count_smoothed or (item.person_count.smoothed if item.person_count else 0),
             infrastructure=[infra.model_dump() for infra in item.infrastructure],
+            is_reliable=is_reliable,
+            quality_metrics=quality_metrics,
         )
         db.add(db_event)
         db.flush()  # assign ID
@@ -109,30 +114,8 @@ async def ingest_detection_events(
         # Execute rules engine checks for this event
         centre_id = camera.centre_id
 
-        # 1. Attendance mismatch evaluation
-        att_alert = RulesEngine.evaluate_attendance_mismatch(
-            db=db,
-            centre_id=centre_id,
-            camera=camera,
-            zone=item.zone,
-            event_time=item.timestamp,
-        )
-        if att_alert:
-            alerts_generated.append(att_alert.id)
-
-        # 2. Infrastructure gap & surplus evaluation
-        infra_alerts = RulesEngine.evaluate_infrastructure_discrepancies(
-            db=db,
-            centre_id=centre_id,
-            camera=camera,
-            zone=item.zone,
-            event_time=item.timestamp,
-            infra_items=db_event.infrastructure,
-        )
-        alerts_generated.extend([a.id for a in infra_alerts])
-
-        # 3. Camera tamper evaluation
-        tamper_alert = RulesEngine.evaluate_camera_tamper(
+        # Quality Gating Check (Evaluated for all events)
+        quality_alert = RulesEngine.evaluate_camera_quality(
             db=db,
             centre_id=centre_id,
             camera=camera,
@@ -140,8 +123,57 @@ async def ingest_detection_events(
             event_time=item.timestamp,
             current_event=db_event,
         )
-        if tamper_alert:
-            alerts_generated.append(tamper_alert.id)
+        if quality_alert:
+            alerts_generated.append(quality_alert.id)
+
+        # Gate attendance and infrastructure rules if frame quality is unreliable
+        if is_reliable:
+            # 1. Attendance mismatch evaluation
+            att_alert = RulesEngine.evaluate_attendance_mismatch(
+                db=db,
+                centre_id=centre_id,
+                camera=camera,
+                zone=item.zone,
+                event_time=item.timestamp,
+            )
+            if att_alert:
+                alerts_generated.append(att_alert.id)
+
+            # 2. Infrastructure gap & surplus evaluation
+            infra_alerts = RulesEngine.evaluate_infrastructure_discrepancies(
+                db=db,
+                centre_id=centre_id,
+                camera=camera,
+                zone=item.zone,
+                event_time=item.timestamp,
+                infra_items=db_event.infrastructure,
+            )
+            if infra_alerts:
+                alerts_generated.extend([a.id for a in infra_alerts])
+
+            # 3. Apparent operability evaluation
+            op_alerts = RulesEngine.evaluate_apparent_operability(
+                db=db,
+                centre_id=centre_id,
+                camera=camera,
+                zone=item.zone,
+                event_time=item.timestamp,
+                infra_items=db_event.infrastructure,
+            )
+            if op_alerts:
+                alerts_generated.extend([a.id for a in op_alerts])
+
+            # 4. Camera tamper evaluation
+            tamper_alert = RulesEngine.evaluate_camera_tamper(
+                db=db,
+                centre_id=centre_id,
+                camera=camera,
+                zone=item.zone,
+                event_time=item.timestamp,
+                current_event=db_event,
+            )
+            if tamper_alert:
+                alerts_generated.append(tamper_alert.id)
 
     db.commit()
 
