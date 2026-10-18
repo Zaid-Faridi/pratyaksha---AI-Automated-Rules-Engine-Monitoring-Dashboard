@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: pratyaksha-backend
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    environment:
+      - DATABASE_URL=sqlite:///./pratyaksha.db
+      - EDGE_API_KEY=pratyaksha_demo_secret_key
+    volumes:
+      - backend-data:/app/backend/data
+      - evidence-data:/app/outputs/evidence
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pratyaksha-frontend
+    restart: unless-stopped
+    ports:
+      - "5188:80"
+    environment:
+      - VITE_API_URL=http://localhost:8088
+    depends_on:
+      - backend
+
+  edge-agent:
+    build:
+      context: .
+      dockerfile: edge/Dockerfile
+    container_name: pratyaksha-edge
+    restart: unless-stopped
+    environment:
+      - PRATYAKSHA_CENTRE_ID=centre_mh_01
+      - PRATYAKSHA_CAMERA_ID=cam_01
+      - PRATYAKSHA_CAMERA_SOURCE=sample_data/skilling_center_demo.mp4
+      - PRATYAKSHA_BACKEND_URL=http://backend:8088
+      - PRATYAKSHA_API_KEY=pratyaksha_demo_secret_key
+      - PRATYAKSHA_PROFILE=normal
+    volumes:
+      - edge-data:/app/edge/data
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-data:
+  evidence-data:
+  edge-data:

@@ -1,0 +1,1142 @@
+[
+  {
+    "frame_id": "frame_000",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_000.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_000",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_000.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_000",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_000.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_000",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_000.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_000",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_000.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_000",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_000.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_001",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_001.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_001",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_001.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_001",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_001.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_001",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_001.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_001",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_001.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_001",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_001.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_002",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_002.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_002",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_002.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_002",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_002.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_002",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_002.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_002",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_002.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_002",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_002.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_003",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_003.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_003",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_003.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_003",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_003.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_003",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_003.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_003",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_003.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_003",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_003.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_004",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_004.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_004",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_004.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_004",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_004.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_004",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_004.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_004",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_004.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_004",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_004.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_005",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_005.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_005",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_005.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_005",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_005.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_005",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_005.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_005",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_005.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_005",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_005.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_006",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_006.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_006",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_006.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_006",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_006.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_006",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_006.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_006",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_006.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_006",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_006.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_007",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_007.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_007",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_007.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_007",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_007.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_007",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_007.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_007",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_007.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_007",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_007.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_008",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_008.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_008",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_008.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_008",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_008.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_008",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_008.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_008",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_008.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_008",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_008.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_009",
+    "variant": "baseline",
+    "image_path": "evaluation/data/scenarios/baseline/frame_009.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_009",
+    "variant": "low_light",
+    "image_path": "evaluation/data/scenarios/low_light/frame_009.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_009",
+    "variant": "blur",
+    "image_path": "evaluation/data/scenarios/blur/frame_009.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_009",
+    "variant": "downscaled",
+    "image_path": "evaluation/data/scenarios/downscaled/frame_009.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_009",
+    "variant": "compression",
+    "image_path": "evaluation/data/scenarios/compression/frame_009.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 5,
+        "chair": 6,
+        "table": 2,
+        "laptop": 2
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  },
+  {
+    "frame_id": "frame_009",
+    "variant": "occlusion",
+    "image_path": "evaluation/data/scenarios/occlusion/frame_009.jpg",
+    "zones": {
+      "classroom": {
+        "persons": 3,
+        "chair": 4,
+        "table": 1,
+        "laptop": 1
+      },
+      "workshop": {
+        "persons": 1,
+        "chair": 2,
+        "table": 2,
+        "laptop": 0
+      }
+    }
+  }
+]

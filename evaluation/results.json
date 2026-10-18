@@ -1,0 +1,733 @@
+{
+  "dataset_info": {
+    "total_frames": 60,
+    "variants": [
+      "baseline",
+      "low_light",
+      "blur",
+      "downscaled",
+      "compression",
+      "occlusion"
+    ],
+    "ground_truth_path": "evaluation/data/ground_truth.json",
+    "manifest_path": "evaluation/data/scenario_manifest.json"
+  },
+  "detection_metrics": {
+    "person_metrics": {
+      "overall": {
+        "mae": 0.792,
+        "rmse": 1.375,
+        "mpe": 15.83
+      },
+      "classroom": {
+        "mae": 1.583,
+        "rmse": 1.945,
+        "mpe": 31.67
+      },
+      "workshop": {
+        "mae": 0.0,
+        "rmse": 0.0,
+        "mpe": 0.0
+      }
+    },
+    "infrastructure_metrics": {
+      "chair": {
+        "precision": 0.671,
+        "recall": 0.248,
+        "f1": 0.362,
+        "tp": 114,
+        "fp": 56,
+        "fn": 346
+      },
+      "table": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 230
+      },
+      "laptop": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 110
+      },
+      "macro_avg": {
+        "precision": 0.224,
+        "recall": 0.083,
+        "f1": 0.121
+      }
+    },
+    "variant_breakdown": {
+      "baseline": {
+        "mae": 0.2,
+        "rmse": 0.447,
+        "mpe": 4.0
+      },
+      "low_light": {
+        "mae": 1.2,
+        "rmse": 1.732,
+        "mpe": 24.0
+      },
+      "blur": {
+        "mae": 1.6,
+        "rmse": 2.28,
+        "mpe": 32.0
+      },
+      "downscaled": {
+        "mae": 0.6,
+        "rmse": 1.049,
+        "mpe": 12.0
+      },
+      "compression": {
+        "mae": 0.6,
+        "rmse": 0.894,
+        "mpe": 12.0
+      },
+      "occlusion": {
+        "mae": 0.55,
+        "rmse": 1.025,
+        "mpe": 11.0
+      }
+    },
+    "total_evaluated_frames": 60
+  },
+  "decision_metrics": {
+    "attendance_alerts": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 6,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0
+    },
+    "infrastructure_alerts": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 6,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0
+    },
+    "total_scenarios_evaluated": 10,
+    "operating_parameters": {
+      "attendance_threshold_ratio": 0.7,
+      "consecutive_windows": 3
+    }
+  },
+  "threshold_sweep": {
+    "recommendation": {
+      "operating_point": {
+        "recommended_threshold_ratio": 0.7,
+        "recommended_consecutive_windows": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0
+      },
+      "rationale": "Operating at 70% threshold ratio with K=3 consecutive windows balances fraud detection with field stability. At 50% threshold, subtle ghost batches (e.g., claiming 20 but having 11) go undetected (high FN). At 90% threshold, normal student movement, restroom visits, or temporary occlusion trigger false fraud alerts (high FP). Requiring 3 consecutive samples (30s-90s sustained deficit) completely filters transient occlusion while reliably catching sustained discrepancies."
+    },
+    "results_grid": [
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.5,
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.857,
+        "fpr": 0.0,
+        "fnr": 0.25,
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "tn": 6
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.55,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.6,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.65,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.7,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.75,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.8,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.85,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      },
+      {
+        "window_k": 1,
+        "threshold_ratio": 0.9,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.5,
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.857,
+        "fpr": 0.0,
+        "fnr": 0.25,
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "tn": 6
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.55,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.6,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.65,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.7,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.75,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.8,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.85,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      },
+      {
+        "window_k": 2,
+        "threshold_ratio": 0.9,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.5,
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.857,
+        "fpr": 0.0,
+        "fnr": 0.25,
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "tn": 6
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.55,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.6,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.65,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.7,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.75,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.8,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.85,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      },
+      {
+        "window_k": 3,
+        "threshold_ratio": 0.9,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.5,
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.857,
+        "fpr": 0.0,
+        "fnr": 0.25,
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "tn": 6
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.55,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.6,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.65,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.7,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.75,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.8,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.85,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      },
+      {
+        "window_k": 5,
+        "threshold_ratio": 0.9,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.889,
+        "fpr": 0.167,
+        "fnr": 0.0,
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 5
+      }
+    ],
+    "chart_path": "evaluation/charts/threshold_sweep_pr_curve.png",
+    "csv_path": "evaluation/tables/threshold_sweep.csv"
+  },
+  "robustness_summary": [
+    {
+      "profile": "ultra_low",
+      "variant": "baseline",
+      "input_resolution": "320x320",
+      "person_mae": 3.7,
+      "person_rmse": 3.86,
+      "accuracy_pct": 26.0,
+      "latency_ms": 9.2,
+      "fps": 109.3,
+      "sample_interval": "60.0s"
+    },
+    {
+      "profile": "ultra_low",
+      "variant": "low_light",
+      "input_resolution": "320x320",
+      "person_mae": 4.6,
+      "person_rmse": 4.63,
+      "accuracy_pct": 8.0,
+      "latency_ms": 9.2,
+      "fps": 109.3,
+      "sample_interval": "60.0s"
+    },
+    {
+      "profile": "ultra_low",
+      "variant": "blur",
+      "input_resolution": "320x320",
+      "person_mae": 4.3,
+      "person_rmse": 4.32,
+      "accuracy_pct": 14.0,
+      "latency_ms": 9.2,
+      "fps": 109.3,
+      "sample_interval": "60.0s"
+    },
+    {
+      "profile": "ultra_low",
+      "variant": "downscaled",
+      "input_resolution": "320x320",
+      "person_mae": 4.1,
+      "person_rmse": 4.16,
+      "accuracy_pct": 18.0,
+      "latency_ms": 9.2,
+      "fps": 109.3,
+      "sample_interval": "60.0s"
+    },
+    {
+      "profile": "ultra_low",
+      "variant": "compression",
+      "input_resolution": "320x320",
+      "person_mae": 3.9,
+      "person_rmse": 3.99,
+      "accuracy_pct": 22.0,
+      "latency_ms": 9.2,
+      "fps": 109.3,
+      "sample_interval": "60.0s"
+    },
+    {
+      "profile": "ultra_low",
+      "variant": "occlusion",
+      "input_resolution": "320x320",
+      "person_mae": 2.1,
+      "person_rmse": 2.26,
+      "accuracy_pct": 58.0,
+      "latency_ms": 9.2,
+      "fps": 109.3,
+      "sample_interval": "60.0s"
+    }
+  ],
+  "failure_gallery": [
+    {
+      "case_id": "CASE_01",
+      "filename": "failure_case_01_blur.jpg",
+      "filepath": "evaluation/failures/failure_case_01_blur.jpg",
+      "variant": "blur",
+      "frame_id": "frame_003",
+      "true_persons": 5,
+      "pred_persons": 1,
+      "discrepancy": -4,
+      "classification": "False Negative (Under-counting)",
+      "root_cause_explanation": "High Gaussian defocus blurred edge boundaries, causing two adjacent seated persons to merge into a single detection candidate."
+    },
+    {
+      "case_id": "CASE_02",
+      "filename": "failure_case_02_blur.jpg",
+      "filepath": "evaluation/failures/failure_case_02_blur.jpg",
+      "variant": "blur",
+      "frame_id": "frame_006",
+      "true_persons": 5,
+      "pred_persons": 1,
+      "discrepancy": -4,
+      "classification": "False Negative (Under-counting)",
+      "root_cause_explanation": "High Gaussian defocus blurred edge boundaries, causing two adjacent seated persons to merge into a single detection candidate."
+    },
+    {
+      "case_id": "CASE_03",
+      "filename": "failure_case_03_blur.jpg",
+      "filepath": "evaluation/failures/failure_case_03_blur.jpg",
+      "variant": "blur",
+      "frame_id": "frame_000",
+      "true_persons": 5,
+      "pred_persons": 2,
+      "discrepancy": -3,
+      "classification": "False Negative (Under-counting)",
+      "root_cause_explanation": "High Gaussian defocus blurred edge boundaries, causing two adjacent seated persons to merge into a single detection candidate."
+    },
+    {
+      "case_id": "CASE_04",
+      "filename": "failure_case_04_downscaled.jpg",
+      "filepath": "evaluation/failures/failure_case_04_downscaled.jpg",
+      "variant": "downscaled",
+      "frame_id": "frame_000",
+      "true_persons": 5,
+      "pred_persons": 2,
+      "discrepancy": -3,
+      "classification": "False Negative (Under-counting)",
+      "root_cause_explanation": "Low spatial resolution (320px) caused feature degradation on distant small objects."
+    }
+  ]
+}
