@@ -1,8 +1,8 @@
-# Pratyaksha (प्रत्यक्ष) - Phase 3: Monitoring Dashboard
+# Pratyaksha (प्रत्यक्ष) - Monitoring Dashboard
 > **AI Video-Analytics Surveillance & Compliance Web Application**  
-> *MSDE Problem Statement 26245*
+> *AI Skilling Centre Monitoring Unit*
 
-The Phase 3 frontend is a responsive, government-grade React dashboard built for national and state-level skilling monitoring units. It visualizes automated attendance auditing, sanctioned infrastructure tracking, camera health telemetry, and compliance alert queues.
+The frontend is a responsive, government-grade React dashboard built for national and state-level skilling monitoring units. It visualizes automated attendance auditing, sanctioned infrastructure tracking, camera health telemetry, and compliance alert queues.
 
 ---
 

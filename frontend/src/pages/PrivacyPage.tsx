@@ -130,7 +130,7 @@ export const PrivacyPage: React.FC = () => {
             Ministry of Skill Development & Entrepreneurship (MSDE) Alignment
           </p>
           <p className="leading-relaxed">
-            Pratyaksha fulfills MSDE Problem Statement 26245 requirements for verifiable attendance auditing and infrastructure tracking under government skilling schemes (PMKVY 4.0, DDU-GKY, STRIVE) without subjecting trainees to continuous biometric surveillance.
+            Pratyaksha fulfills national monitoring requirements for verifiable attendance auditing and infrastructure tracking under government skilling schemes (PMKVY 4.0, DDU-GKY, STRIVE) without subjecting trainees to continuous biometric surveillance.
           </p>
         </div>
       </div>
