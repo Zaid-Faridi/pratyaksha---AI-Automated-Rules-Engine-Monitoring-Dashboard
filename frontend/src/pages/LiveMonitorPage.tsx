@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Radio,
   Video,
+  VideoOff,
   ShieldCheck,
   AlertTriangle,
   Users,
@@ -35,8 +36,13 @@ import { api } from '../api/client';
 import { Camera, Centre, LiveTelemetryPayload, LiveAlertTickerItem } from '../types';
 
 export const LiveMonitorPage: React.FC = () => {
-  // View Mode: Single Camera Feed vs 4-Centre Multi-Centre Wall View
-  const [viewMode, setViewMode] = useState<'single' | 'wall'>('single');
+  const [searchParams] = useSearchParams();
+  const urlCentre = searchParams.get('centre');
+  const urlCamera = searchParams.get('camera');
+  const urlMode = searchParams.get('mode');
+
+  // View Mode: Single Camera Feed vs Multi-Centre Wall View
+  const [viewMode, setViewMode] = useState<'single' | 'wall'>(urlMode === 'wall' ? 'wall' : 'single');
   const [activeScenario, setActiveScenario] = useState<string>('compliant');
 
   // Queries for Centres and Cameras
@@ -85,12 +91,28 @@ export const LiveMonitorPage: React.FC = () => {
   const [liveAlerts, setLiveAlerts] = useState<LiveAlertTickerItem[]>([]);
   const sseRef = useRef<EventSource | null>(null);
 
-  // Auto-select first centre and camera when data loads
+  // Auto-select centre and camera from URL params or first centre
   useEffect(() => {
-    if (centres.length > 0 && !selectedCentreId) {
+    if (urlCentre && centres.some((c) => c.id === urlCentre)) {
+      setSelectedCentreId(urlCentre);
+    } else if (centres.length > 0 && !selectedCentreId) {
       setSelectedCentreId(centres[0].id);
     }
-  }, [centres, selectedCentreId]);
+  }, [centres, selectedCentreId, urlCentre]);
+
+  useEffect(() => {
+    if (urlCamera && cameras.some((c) => c.id === urlCamera)) {
+      setSelectedCameraId(urlCamera);
+    }
+  }, [cameras, urlCamera]);
+
+  useEffect(() => {
+    if (urlMode === 'wall') {
+      setViewMode('wall');
+    } else if (urlMode === 'single') {
+      setViewMode('single');
+    }
+  }, [urlMode]);
 
   const centreCameras = cameras.filter((c) => !selectedCentreId || c.centre_id === selectedCentreId);
   const activeCentre = centres.find((c) => c.id === selectedCentreId);
@@ -474,7 +496,7 @@ export const LiveMonitorPage: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <LayoutGrid className="w-5 h-5 text-teal-400" />
               <div>
-                <h2 className="text-sm font-bold">Multi-Centre Monitoring Wall (4 Simultaneous Feeds)</h2>
+                <h2 className="text-sm font-bold">Multi-Centre Monitoring Wall ({wallData?.count || 6} Simultaneous Feeds)</h2>
                 <p className="text-[11px] text-slate-400">Low-bandwidth streaming (480px, 5.0 FPS) across vocational trade centres.</p>
               </div>
             </div>
@@ -490,9 +512,10 @@ export const LiveMonitorPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(wallData?.wall_centres || []).slice(0, 4).map((wc: any) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(wallData?.wall_centres || []).map((wc: any) => {
               const mismatch = wc.current_headcount < 0.70 * wc.claimed_attendance && wc.claimed_attendance > 0;
+              const isOffline = wc.camera_status === 'offline';
               return (
                 <div
                   key={wc.centre_id}
@@ -500,28 +523,55 @@ export const LiveMonitorPage: React.FC = () => {
                 >
                   {/* Card Header */}
                   <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                         {wc.centre_name}
                       </h3>
-                      <p className="text-[10px] text-slate-400 font-mono">
+                      <p className="text-[10px] text-slate-400 font-mono truncate">
                         {wc.district}, {wc.state} • CAM: {wc.camera_id}
                       </p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gov-50 dark:bg-gov-950 text-gov-700 dark:text-gov-300 border border-gov-200 dark:border-gov-800 uppercase">
-                      {wc.trade_id.replace('_', ' ')}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {wc.status_chip && (
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${
+                          wc.status_chip === 'OK'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : wc.status_chip === 'Mismatch'
+                            ? 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300'
+                            : wc.status_chip === 'Equipment'
+                            ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300'
+                            : 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300'
+                        }`}>
+                          {wc.status_chip}
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gov-50 dark:bg-gov-950 text-gov-700 dark:text-gov-300 border border-gov-200 dark:border-gov-800 uppercase">
+                        {wc.trade_name || wc.trade_id.replace('_', ' ')}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Video Viewport (Low-bandwidth MJPEG) */}
                   <div className="aspect-video w-full bg-slate-950 relative flex items-center justify-center">
-                    <img
-                      key={`wall-${wc.camera_id}-${reconnectKey}`}
-                      src={`${api.getCameraStreamUrl(wc.camera_id, { maxWidth: 480, fps: 5.0, scenario: wc.current_scenario })}&t=${reconnectKey}`}
-                      alt={wc.centre_name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    {wc.has_footage && !isOffline ? (
+                      <img
+                        key={`wall-${wc.camera_id}-${reconnectKey}`}
+                        src={`${api.getCameraStreamUrl(wc.camera_id, { maxWidth: 480, fps: 5.0, scenario: wc.current_scenario })}&t=${reconnectKey}`}
+                        alt={wc.centre_name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-4 text-center">
+                        <VideoOff className="w-8 h-8 text-slate-500 mb-1" />
+                        <span className="text-xs font-semibold text-slate-300">
+                          {isOffline ? 'Camera Offline' : 'Simulated feed (no footage provided)'}
+                        </span>
+                        <span className="text-[10px] text-slate-500 mt-0.5">
+                          {isOffline ? 'CCTV edge offline' : 'Standby playback'}
+                        </span>
+                      </div>
+                    )}
                     {/* Status scanline overlay */}
                     <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 backdrop-blur-sm text-[10px] text-emerald-400 font-mono flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

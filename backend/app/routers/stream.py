@@ -20,8 +20,9 @@ from sqlalchemy.orm import Session
 
 from pathlib import Path
 from app.database import get_db
-from app.models import Alert, AttendanceRecord, Batch, Camera, Centre
-from app.streaming import stream_manager
+from app.models import Alert, AttendanceRecord, Batch, Camera, Centre, DetectionEvent
+from app.rules_engine import RulesEngine
+from app.streaming import stream_manager, get_manifest_config
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -60,18 +61,27 @@ def get_streaming_manifest():
 @router.get("/streaming/wall")
 def get_multi_centre_wall(db: Session = Depends(get_db)):
     """
-    Return live status metadata for the 4-centre wall view grid:
+    Return live status metadata for all 6 skilling centres in the wall view:
     - Centre identification and trade profile
-    - Primary camera ID and low-bandwidth stream URL
-    - Current headcount vs claimed attendance
+    - Primary camera ID, stream URL, and snapshot URL
+    - Current headcount vs claimed attendance with discrepancy ratio
     - Real-time compliance score and active alerts count
+    - Status chip (OK, Mismatch, Equipment, Offline)
+    - Verification of footage file existence on disk
     """
-    target_centre_ids = ["centre_mh_01", "centre_up_02", "centre_ka_03", "centre_or_04"]
+    target_centre_ids = [
+        "centre_mh_01",
+        "centre_up_02",
+        "centre_ka_03",
+        "centre_or_04",
+        "centre_rj_05",
+        "centre_dl_06",
+    ]
     centres = db.query(Centre).filter(Centre.id.in_(target_centre_ids)).all()
-    if len(centres) < 4:
-        centres = db.query(Centre).limit(4).all()
+    if len(centres) < 6:
+        centres = db.query(Centre).all()
 
-    # Sort in target order
+    # Sort in canonical target order
     order_map = {cid: idx for idx, cid in enumerate(target_centre_ids)}
     centres.sort(key=lambda c: order_map.get(c.id, 99))
 
@@ -80,15 +90,59 @@ def get_multi_centre_wall(db: Session = Depends(get_db)):
         cam = db.query(Camera).filter(Camera.centre_id == c.id).first()
         cam_id = cam.id if cam else f"cam_{c.id}"
         batch = db.query(Batch).filter(Batch.centre_id == c.id).first()
-        active_alerts_count = db.query(Alert).filter(Alert.centre_id == c.id, Alert.status == "OPEN").count()
+        active_alerts = db.query(Alert).filter(Alert.centre_id == c.id, Alert.status == "open").all()
+        active_alerts_count = len(active_alerts)
+
+        manifest_cfg = get_manifest_config(c.id, cam_id)
+        video_rel = manifest_cfg.get("video_file") if manifest_cfg else (cam.rtsp_url if cam else f"demo_footage/{c.id}/{cam_id}.mp4")
+        has_footage = (ROOT_DIR / str(video_rel)).exists() if video_rel else False
 
         session = stream_manager.sessions.get(cam_id)
         att_rec = db.query(AttendanceRecord).filter(AttendanceRecord.centre_id == c.id).order_by(AttendanceRecord.date.desc()).first()
-        claimed_att = att_rec.claimed_count if att_rec else 15
-        current_headcount = 0
+        claimed_att = att_rec.claimed_count if att_rec else (manifest_cfg.get("claimed_attendance", 15) if manifest_cfg else 15)
+        
+        # Latest detection event fallback
+        latest_event = (
+            db.query(DetectionEvent)
+            .join(Camera)
+            .filter(Camera.centre_id == c.id)
+            .order_by(DetectionEvent.timestamp.desc())
+            .first()
+        )
+        current_headcount = latest_event.person_count_smoothed if latest_event else 0
+
         if session and session.latest_telemetry:
-            current_headcount = session.latest_telemetry.get("total_persons_detected", 0)
+            current_headcount = session.latest_telemetry.get("total_persons_detected", current_headcount)
             claimed_att = session.latest_telemetry.get("claimed_attendance", claimed_att)
+
+        # Calculate compliance score
+        comp_score = getattr(c, "compliance_score", None)
+        if comp_score is None:
+            try:
+                comp_breakdown = RulesEngine.calculate_compliance_score(db, c.id)
+                comp_score = comp_breakdown.get("compliance_score", 85.0)
+            except Exception:
+                comp_score = 85.0
+
+        # Determine status chip: OK, Mismatch, Equipment, Offline
+        cam_status = cam.status if cam else "online"
+        has_mismatch_alert = any(a.type == "ATTENDANCE_MISMATCH" for a in active_alerts)
+        has_equipment_alert = any(a.type in ("EQUIPMENT_MISSING", "EQUIPMENT_INOPERABLE", "SAFETY_EQUIPMENT_MISSING", "PPE_VIOLATION", "CAPACITY_DEFICIT") for a in active_alerts)
+
+        if cam_status in ("offline", "tampered"):
+            status_chip = "Offline"
+        elif has_mismatch_alert or (claimed_att > 0 and (current_headcount / float(claimed_att)) < 0.70):
+            status_chip = "Mismatch"
+        elif has_equipment_alert or any(a.type == "INSTRUCTOR_ABSENT" for a in active_alerts):
+            status_chip = "Equipment"
+        else:
+            status_chip = "OK"
+
+        trade_name = (
+            manifest_cfg.get("trade_name")
+            if manifest_cfg
+            else (c.trade_profile.name if c.trade_profile else (c.trade_id or "General").replace("_", " ").title())
+        )
 
         wall_items.append({
             "centre_id": c.id,
@@ -96,15 +150,20 @@ def get_multi_centre_wall(db: Session = Depends(get_db)):
             "state": c.state,
             "district": c.district,
             "trade_id": c.trade_id or "general",
+            "trade_name": trade_name,
             "camera_id": cam_id,
             "stream_url": f"/api/cameras/{cam_id}/stream?max_width=480&fps=5.0",
             "snapshot_url": f"/api/cameras/{cam_id}/snapshot",
             "current_headcount": current_headcount,
             "claimed_attendance": claimed_att,
-            "compliance_score": getattr(c, "compliance_score", 85.0) or 85.0,
+            "compliance_score": round(float(comp_score), 1),
             "active_alerts_count": active_alerts_count,
-            "camera_status": cam.status if cam else "online",
-            "current_scenario": session.scenario if session else "compliant",
+            "camera_status": cam_status,
+            "current_scenario": session.scenario if session else (manifest_cfg.get("default_scenario", "compliant") if manifest_cfg else "compliant"),
+            "status_chip": status_chip,
+            "has_footage": has_footage,
+            "footage_file": str(video_rel) if video_rel else None,
+            "missing_footage_reason": None if has_footage else "Simulated feed (no footage provided)",
         })
 
     return {
@@ -147,12 +206,18 @@ async def get_camera_stream(
     # Resolve active batch and default claimed attendance
     batch = db.query(Batch).filter(Batch.centre_id == camera.centre_id).first()
     active_batch_name = batch.name if batch else "General Skilling Session"
-    default_claimed = claimed_attendance if claimed_attendance is not None else (batch.expected_count if batch else 18)
+    att_rec = db.query(AttendanceRecord).filter(AttendanceRecord.centre_id == camera.centre_id).order_by(AttendanceRecord.date.desc()).first()
+    default_claimed = claimed_attendance if claimed_attendance is not None else (att_rec.claimed_count if att_rec else 15)
 
-    # Determine video source
-    source = camera.rtsp_url
-    if demo or not source or "internal" in str(source):
-        source = "sample_data/skilling_center_demo.mp4"
+    # Determine video source from manifest or camera rtsp_url
+    manifest_cfg = get_manifest_config(camera.centre_id, camera_id)
+    video_rel = manifest_cfg.get("video_file") if manifest_cfg else camera.rtsp_url
+    if video_rel and (ROOT_DIR / str(video_rel)).exists():
+        source = str(ROOT_DIR / str(video_rel))
+    elif camera.rtsp_url and str(camera.rtsp_url).startswith("rtsp://"):
+        source = str(camera.rtsp_url)
+    else:
+        source = str(ROOT_DIR / "sample_data/skilling_center_demo.mp4")
 
     session = stream_manager.get_or_create_session(
         camera_id=camera_id,
@@ -220,9 +285,14 @@ async def get_camera_snapshot(
         )
 
     # Resolve source
-    source = camera.rtsp_url
-    if not source or "internal" in str(source) or not str(source).startswith("rtsp://"):
-        source = "sample_data/skilling_center_demo.mp4"
+    manifest_cfg = get_manifest_config(camera.centre_id, camera_id)
+    video_rel = manifest_cfg.get("video_file") if manifest_cfg else camera.rtsp_url
+    if video_rel and (ROOT_DIR / str(video_rel)).exists():
+        source = str(ROOT_DIR / str(video_rel))
+    elif camera.rtsp_url and str(camera.rtsp_url).startswith("rtsp://"):
+        source = str(camera.rtsp_url)
+    else:
+        source = str(ROOT_DIR / "sample_data/skilling_center_demo.mp4")
 
     # Use existing session's latest JPEG if streaming, or generate one
     session = stream_manager.sessions.get(camera_id)

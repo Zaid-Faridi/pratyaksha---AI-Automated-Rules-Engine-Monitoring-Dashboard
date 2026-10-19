@@ -105,6 +105,7 @@ export interface WallCentreItem {
   state: string;
   district: string;
   trade_id: string;
+  trade_name?: string;
   camera_id: string;
   stream_url: string;
   snapshot_url: string;
@@ -114,6 +115,10 @@ export interface WallCentreItem {
   active_alerts_count: number;
   camera_status: string;
   current_scenario: string;
+  status_chip?: 'OK' | 'Mismatch' | 'Equipment' | 'Offline';
+  has_footage?: boolean;
+  footage_file?: string | null;
+  missing_footage_reason?: string | null;
 }
 
 export interface TradeProfile {

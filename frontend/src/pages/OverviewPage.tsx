@@ -30,6 +30,8 @@ import { ScoreRing } from '../components/common/ScoreRing';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
 import { ErrorState } from '../components/common/ErrorState';
+import { ActiveAlertsPanel } from '../components/dashboard/ActiveAlertsPanel';
+import { LiveCentreWall } from '../components/dashboard/LiveCentreWall';
 
 export const OverviewPage: React.FC = () => {
   const { data: summary, isLoading, isError, refetch } = useQuery({
@@ -61,18 +63,6 @@ export const OverviewPage: React.FC = () => {
     return <ErrorState onRetry={() => refetch()} />;
   }
 
-  // Format alerts data for BarChart
-  const alertChartData = Object.entries(summary.alerts_by_type || {}).map(([type, count]) => ({
-    name: type.replace(/_/g, ' '),
-    rawType: type,
-    count,
-  }));
-
-  const getAlertColor = (type: string) => {
-    if (type.includes('TAMPER') || type.includes('DEFICIT') || type.includes('GAP')) return '#EF4444';
-    if (type.includes('MISMATCH') || type.includes('OFFLINE')) return '#F97316';
-    return '#38BDF8';
-  };
 
   return (
     <div className="space-y-7 pb-10">
@@ -117,24 +107,29 @@ export const OverviewPage: React.FC = () => {
         <KpiCard
           title="Monitored Centres"
           value={summary.total_centres}
-          subtitle="Across 5 Indian States"
+          subtitle="Across 6 Indian States"
           icon={Building2}
           variant="default"
         />
 
-        <div className="rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-              Avg Compliance
-            </span>
-            <span className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight mt-1 block">
-              {summary.average_compliance_score.toFixed(1)}%
-            </span>
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-              National Benchmark
-            </span>
+        {/* Rebuilt Avg Compliance Card */}
+        <div className="rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between h-full min-h-[140px] transition-all hover:shadow-md">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block truncate">
+            Avg Compliance
+          </span>
+          <div className="mt-2 flex items-center justify-between gap-3 min-w-0">
+            <div className="min-w-0 flex-1">
+              <span className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight block truncate">
+                {summary.average_compliance_score.toFixed(1)}%
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block truncate mt-0.5">
+                National benchmark
+              </span>
+            </div>
+            <div className="flex-shrink-0">
+              <ScoreRing score={summary.average_compliance_score} size="md" showLabel={false} />
+            </div>
           </div>
-          <ScoreRing score={summary.average_compliance_score} size="md" />
         </div>
 
         <KpiCard
@@ -162,55 +157,20 @@ export const OverviewPage: React.FC = () => {
         />
       </div>
 
+      {/* Live Centre Wall Section */}
+      <LiveCentreWall />
+
       {/* Charts Section: Alerts Breakdown & Compliance Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Alerts by Type */}
-        <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4 text-gov-600" />
-                Active Alerts Breakdown
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Categorized by compliance violation type
-              </p>
-            </div>
-            <Link
-              to="/alerts"
-              className="text-xs font-semibold text-gov-600 hover:text-gov-700 dark:text-gov-400 inline-flex items-center gap-1"
-            >
-              View Queue <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={alertChartData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.2} />
-                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 10 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#0F172A',
-                    borderColor: '#334155',
-                    borderRadius: '8px',
-                    color: '#F8FAFC',
-                    fontSize: '12px',
-                  }}
-                />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                  {alertChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getAlertColor(entry.rawType)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        {/* Replaced Active Alerts Breakdown Panel */}
+        <ActiveAlertsPanel
+          alertsByType={summary.alerts_by_type}
+          alertsBySeverity={summary.alerts_by_severity}
+          totalAlerts={summary.open_alerts_count}
+        />
 
         {/* 7-Day Compliance Trend */}
-        <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+        <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between h-full">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
