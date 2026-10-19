@@ -9,7 +9,7 @@
 [![React: 18](https://img.shields.io/badge/React-18.3-61DAFB.svg)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg)]()
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg)]()
-[![Tests: 45 Passing](https://img.shields.io/badge/Tests-45%20Passed-success.svg)]()
+[![Tests: 58 Passing](https://img.shields.io/badge/Tests-58%20Passed-success.svg)]()
 
 ---
 
@@ -247,6 +247,128 @@ Pratyaksha includes an on-demand, privacy-preserving live video streaming monito
    ```bash
    pytest backend/tests/test_streaming.py -v
    ```
+
+---
+
+## 5.5. Multi-Trade, Multi-Centre Support & Diverse Footage Demo
+
+Pratyaksha includes comprehensive support for diverse vocational training trades, custom centre equipment quotas, per-centre video footage, and a 4-centre live wall view.
+
+### A. How to Add a New Trade Profile
+Trade profiles can be added either via the configuration file or directly via the UI/REST API:
+
+1. **Via `trade_profiles.yaml`:**
+   Add a new trade entry under `trade_profiles:`
+   ```yaml
+   trade_profiles:
+     solar_technician:
+       id: "solar_technician"
+       name: "Solar PV Installation & Maintenance"
+       category: "Green Jobs Sector Skill Council"
+       description: "Rooftop and ground-mount solar PV installation workshop"
+       sanctioned_equipment:
+         - item: "solar_panel"
+           expected_per_batch: 8
+           detector_prompts: ["solar panel", "photovoltaic module"]
+           operability:
+             check_type: "bench"
+             check_unblocked: true
+         - item: "multimeter"
+           expected_per_batch: 6
+           detector_prompts: ["digital multimeter", "clamp meter"]
+           operability:
+             check_type: "tool"
+       required_ppe:
+         - name: "safety_helmet"
+           label: "Industrial Safety Helmet"
+           required: true
+         - name: "insulated_gloves"
+           label: "1000V Insulated Gloves"
+           required: true
+       safety_items: ["fire_extinguisher", "first_aid_box"]
+       mandatory_signage: ["safety_signage", "biometric_device"]
+       workstation_capacity_rule:
+         min_stations_per_candidate: 1.0
+       compliance_checks:
+         instructor_presence: { enabled: true, min_presence_ratio: 0.6 }
+         ppe_compliance: { enabled: true, min_compliance_ratio: 0.8 }
+   ```
+
+2. **Via REST API / Central Dashboard:**
+   ```bash
+   curl -X POST http://localhost:8088/trades \
+     -H "Content-Type: application/json" \
+     -d '{
+       "id": "solar_technician",
+       "name": "Solar PV Installation & Maintenance",
+       "category": "Green Jobs SSC",
+       "sanctioned_equipment": [{"item": "solar_panel", "expected_per_zone": 8, "operability_heuristic": "unblocked", "detector_prompt": "solar panel"}]
+     }'
+   ```
+   Or navigate to any Centre detail page in the dashboard and click **"Configure Trade & Overrides"**.
+
+### B. How to Add a New Centre with Its Own Video Footage
+1. **Demo Footage Directory Structure:**
+   Place your licensed or self-recorded video clip (`.mp4` or `.avi`) inside the `demo_footage/` folder structure:
+   ```text
+   demo_footage/
+   ├── <centre_id>/
+   │   └── <camera_id>.mp4
+   ```
+   *Example:* `demo_footage/centre_gj_07/cam_01.mp4`
+
+2. **Update `demo_footage/manifest.yaml`:**
+   Add your centre mapping:
+   ```yaml
+   centres:
+     centre_gj_07:
+       centre_id: centre_gj_07
+       name: Ahmedabad Green Skills Academy
+       state: Gujarat
+       district: Ahmedabad
+       trade_id: solar_technician
+       trade_name: Solar PV Installation
+       scheme: PMKVY 4.0
+       claimed_attendance: 12
+       active_batch: Solar Technician Batch A
+       cameras:
+         - camera_id: cam_gj_01
+           name: Solar Practical Yard
+           video_file: demo_footage/centre_gj_07/cam_01.mp4
+           zones:
+             practical_yard:
+               type: workstation
+               polygon: [[50, 50], [600, 50], [600, 650], [50, 650]]
+               expected_infrastructure:
+                 solar_panel: 8
+   ```
+   The Live Monitor and Edge streaming service automatically detect the new entry without restarting the server.
+
+### C. How to Run the Multi-Centre Wall View Demo
+1. Ensure both backend and frontend dev servers are running:
+   ```bash
+   # Terminal 1: Backend
+   PYTHONPATH=backend python -m uvicorn app.main:app --host 0.0.0.0 --port 8088
+
+   # Terminal 2: Frontend
+   cd frontend && npm run dev -- --port 5188
+   ```
+2. Open your browser at `http://localhost:5188/live`
+3. Click the **"4-Centre Wall View"** toggle button in the top right header.
+4. The screen renders a 2x2 multi-centre grid streaming 4 centres simultaneously:
+   - **Pune (IT Lab):** Classroom workstation streaming with computer screen illumination heuristics.
+   - **Varanasi (Sewing & Apparel):** Garment workshop streaming with sewing machine and apron compliance checks.
+   - **Bengaluru (Electrical):** Electrical bench view with insulated tool checks.
+   - **Bhubaneswar (Welding):** Industrial bay view with welding arc flash indicators and mandatory helmet ratio checks.
+5. **Interactive Scenario Injection:**
+   Use the scenario dropdown under each stream to test real-time violation handling:
+   - `inflated_attendance`: Injects sudden 25 claimed attendance -> triggers `ATTENDANCE_MISMATCH`.
+   - `missing_machine`: Simulates removed workshop equipment -> triggers `INFRASTRUCTURE_GAP`.
+   - `missing_ppe`: Simulates missing helmets/aprons -> triggers `PPE_VIOLATION`.
+   - `instructor_absent`: Simulates empty instructor dais -> triggers `INSTRUCTOR_ABSENT`.
+   - `idle_session`: Simulates inactive trainees -> triggers `ZONE_IDLE_DURING_BATCH`.
+   - `capacity_deficit`: Simulates workstation shortfall -> triggers `CAPACITY_DEFICIT`.
+   - `poor_quality`: Simulates camera smudging or defocus -> triggers quality gating and flags `POOR_CAMERA_QUALITY`.
 
 ---
 

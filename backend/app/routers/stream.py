@@ -18,9 +18,12 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from pathlib import Path
 from app.database import get_db
-from app.models import Batch, Camera, Centre
+from app.models import Alert, AttendanceRecord, Batch, Camera, Centre
 from app.streaming import stream_manager
+
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 router = APIRouter(tags=["Live Stream & Monitoring"])
 
@@ -28,10 +31,86 @@ router = APIRouter(tags=["Live Stream & Monitoring"])
 class DemoConfigPayload(BaseModel):
     claimed_attendance: Optional[int] = None
     demo_mode: Optional[bool] = None
+    scenario: Optional[str] = None
 
 
 class CentreStreamingTogglePayload(BaseModel):
     enabled: bool
+
+
+@router.get("/streaming/manifest")
+def get_streaming_manifest():
+    """Return master demo footage and scenario manifest for multi-centre monitoring."""
+    manifest_paths = [
+        ROOT_DIR / "demo_footage" / "manifest.json",
+        ROOT_DIR / "demo_footage" / "manifest.yaml",
+    ]
+    for p in manifest_paths:
+        if p.exists():
+            if p.suffix == ".json":
+                with open(p, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            else:
+                import yaml
+                with open(p, "r", encoding="utf-8") as f:
+                    return yaml.safe_load(f)
+    raise HTTPException(status_code=404, detail="Demo footage manifest not found.")
+
+
+@router.get("/streaming/wall")
+def get_multi_centre_wall(db: Session = Depends(get_db)):
+    """
+    Return live status metadata for the 4-centre wall view grid:
+    - Centre identification and trade profile
+    - Primary camera ID and low-bandwidth stream URL
+    - Current headcount vs claimed attendance
+    - Real-time compliance score and active alerts count
+    """
+    target_centre_ids = ["centre_mh_01", "centre_up_02", "centre_ka_03", "centre_or_04"]
+    centres = db.query(Centre).filter(Centre.id.in_(target_centre_ids)).all()
+    if len(centres) < 4:
+        centres = db.query(Centre).limit(4).all()
+
+    # Sort in target order
+    order_map = {cid: idx for idx, cid in enumerate(target_centre_ids)}
+    centres.sort(key=lambda c: order_map.get(c.id, 99))
+
+    wall_items = []
+    for c in centres:
+        cam = db.query(Camera).filter(Camera.centre_id == c.id).first()
+        cam_id = cam.id if cam else f"cam_{c.id}"
+        batch = db.query(Batch).filter(Batch.centre_id == c.id).first()
+        active_alerts_count = db.query(Alert).filter(Alert.centre_id == c.id, Alert.status == "OPEN").count()
+
+        session = stream_manager.sessions.get(cam_id)
+        att_rec = db.query(AttendanceRecord).filter(AttendanceRecord.centre_id == c.id).order_by(AttendanceRecord.date.desc()).first()
+        claimed_att = att_rec.claimed_count if att_rec else 15
+        current_headcount = 0
+        if session and session.latest_telemetry:
+            current_headcount = session.latest_telemetry.get("total_persons_detected", 0)
+            claimed_att = session.latest_telemetry.get("claimed_attendance", claimed_att)
+
+        wall_items.append({
+            "centre_id": c.id,
+            "centre_name": c.name,
+            "state": c.state,
+            "district": c.district,
+            "trade_id": c.trade_id or "general",
+            "camera_id": cam_id,
+            "stream_url": f"/api/cameras/{cam_id}/stream?max_width=480&fps=5.0",
+            "snapshot_url": f"/api/cameras/{cam_id}/snapshot",
+            "current_headcount": current_headcount,
+            "claimed_attendance": claimed_att,
+            "compliance_score": getattr(c, "compliance_score", 85.0) or 85.0,
+            "active_alerts_count": active_alerts_count,
+            "camera_status": cam.status if cam else "online",
+            "current_scenario": session.scenario if session else "compliant",
+        })
+
+    return {
+        "count": len(wall_items),
+        "wall_centres": wall_items,
+    }
 
 
 @router.get("/cameras/{camera_id}/stream")
@@ -39,6 +118,9 @@ async def get_camera_stream(
     camera_id: str,
     claimed_attendance: Optional[int] = Query(None, description="Simulate or override claimed attendance quota"),
     demo: bool = Query(True, description="Enable looping demo video if physical RTSP is not connected"),
+    scenario: Optional[str] = Query(None, description="Inject demo scenario (e.g. inflated_attendance, missing_machine, missing_ppe, instructor_absent, poor_quality, idle_session)"),
+    max_width: int = Query(640, description="Max frame width for streaming bandwidth control"),
+    fps: float = Query(7.5, description="Frame rate limit"),
     db: Session = Depends(get_db),
 ):
     """
@@ -65,7 +147,7 @@ async def get_camera_stream(
     # Resolve active batch and default claimed attendance
     batch = db.query(Batch).filter(Batch.centre_id == camera.centre_id).first()
     active_batch_name = batch.name if batch else "General Skilling Session"
-    default_claimed = claimed_attendance if claimed_attendance is not None else 18
+    default_claimed = claimed_attendance if claimed_attendance is not None else (batch.expected_count if batch else 18)
 
     # Determine video source
     source = camera.rtsp_url
@@ -78,12 +160,14 @@ async def get_camera_stream(
         source=source,
         claimed_attendance=default_claimed,
         active_batch_name=active_batch_name,
-        fps_limit=7.5,
+        fps_limit=fps,
+        max_width=max_width,
         demo_mode=demo,
+        scenario=scenario,
     )
 
-    if claimed_attendance is not None:
-        session.update_demo_config(claimed_attendance=claimed_attendance)
+    if claimed_attendance is not None or scenario is not None:
+        session.update_demo_config(claimed_attendance=claimed_attendance, scenario=scenario)
 
     queue = await session.add_viewer()
 
@@ -279,6 +363,7 @@ def update_camera_demo_config(
     session.update_demo_config(
         claimed_attendance=payload.claimed_attendance,
         demo_mode=payload.demo_mode,
+        scenario=payload.scenario,
     )
 
     return {
@@ -286,6 +371,7 @@ def update_camera_demo_config(
         "camera_id": camera_id,
         "claimed_attendance": session.claimed_attendance,
         "demo_mode": session.demo_mode,
+        "scenario": getattr(session, "scenario", "compliant"),
     }
 
 

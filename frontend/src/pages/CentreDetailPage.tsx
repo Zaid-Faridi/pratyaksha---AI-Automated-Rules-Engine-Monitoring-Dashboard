@@ -13,6 +13,14 @@ import {
   Video,
   VideoOff,
   AlertTriangle,
+  Wrench,
+  ShieldCheck,
+  HardHat,
+  Flame,
+  Activity,
+  Edit3,
+  X,
+  Save,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -39,11 +47,53 @@ export const CentreDetailPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
+  const [selectedTradeId, setSelectedTradeId] = useState<string>('');
+  const [overridesJson, setOverridesJson] = useState<string>('{}');
 
   // 1. Fetch Centre info
   const { data: centre, isLoading: loadingCentre } = useQuery({
     queryKey: ['centre', id],
     queryFn: () => api.getCentre(id),
+  });
+
+  // 1b. Fetch Effective Trade Profile for this Centre
+  const { data: effectiveTrade, isLoading: loadingTrade } = useQuery({
+    queryKey: ['centreEffectiveTrade', id],
+    queryFn: async () => {
+      const data = await api.getCentreEffectiveTrade(id);
+      if (data?.trade_id) {
+        setSelectedTradeId(data.trade_id);
+      }
+      if (data?.overrides) {
+        setOverridesJson(JSON.stringify(data.overrides, null, 2));
+      }
+      return data;
+    },
+  });
+
+  // 1c. Fetch All Master Trades for dropdown
+  const { data: allTrades } = useQuery({
+    queryKey: ['allTrades'],
+    queryFn: () => api.getTrades(),
+  });
+
+  // Trade override mutation
+  const updateTradeMutation = useMutation({
+    mutationFn: (payload: { trade_id: string; trade_overrides: any }) =>
+      api.updateCentreTradeOverrides(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['centreEffectiveTrade', id] });
+      queryClient.invalidateQueries({ queryKey: ['centre', id] });
+      queryClient.invalidateQueries({ queryKey: ['centreInfrastructureStatus', id] });
+      setIsTradeModalOpen(false);
+      setToastMessage('Trade profile and zone-level standards updated successfully.');
+      setTimeout(() => setToastMessage(null), 4000);
+    },
+    onError: (err: any) => {
+      setToastMessage(`Error updating trade profile: ${err.message}`);
+      setTimeout(() => setToastMessage(null), 4000);
+    },
   });
 
   // 2. Fetch Compliance Breakdown
@@ -227,6 +277,163 @@ export const CentreDetailPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Master Vocational Trade Profile & Standards Card */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
+                <Wrench className="w-5 h-5" />
+              </span>
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                Vocational Trade Profile: {effectiveTrade?.name || 'General Skilling'}
+              </h2>
+              <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {effectiveTrade?.category || 'Standard SSC Curriculum'}
+              </span>
+              {effectiveTrade?.overrides && Object.keys(effectiveTrade.overrides).length > 0 && (
+                <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                  Zone Overrides Active
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-3xl">
+              {effectiveTrade?.description || 'Defines sanctioned equipment norms, open-vocabulary detector prompts, and automated operability checks for this centre.'}
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setSelectedTradeId(effectiveTrade?.trade_id || 'it_lab');
+              setOverridesJson(JSON.stringify(effectiveTrade?.overrides || {}, null, 2));
+              setIsTradeModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition self-start sm:self-center"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+            Edit Profile & Overrides
+          </button>
+        </div>
+
+        {/* 3-Column Standards Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+          {/* Column 1: Required PPE */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <HardHat className="w-4 h-4 text-amber-500" />
+              <span>Mandatory PPE (Zero-PII Aggregate)</span>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">
+              Minimum {effectiveTrade?.compliance_checks?.ppe_compliance?.min_compliance_ratio ? Math.round(effectiveTrade.compliance_checks.ppe_compliance.min_compliance_ratio * 100) : 80}% aggregate compliance required
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {effectiveTrade?.required_ppe && effectiveTrade.required_ppe.length > 0 ? (
+                effectiveTrade.required_ppe.map((item: string, idx: number) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-900 capitalize"
+                  >
+                    {item.replace(/_/g, ' ')}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400 italic">Standard uniform / general dress code</span>
+              )}
+            </div>
+          </div>
+
+          {/* Column 2: Safety & Entrance Items */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <span>Safety & Entrance Compliance</span>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">
+              Verified continuously via entrance and workshop ROI feeds
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {(effectiveTrade?.safety_items || ['fire_extinguisher', 'first_aid_box']).map((item: string, idx: number) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900 capitalize"
+                >
+                  {item.replace(/_/g, ' ')}
+                </span>
+              ))}
+              {(effectiveTrade?.mandatory_signage || ['safety_signage', 'biometric_device']).map((item: string, idx: number) => (
+                <span
+                  key={`sign-${idx}`}
+                  className="px-2 py-0.5 rounded text-[11px] font-semibold bg-cyan-100 dark:bg-cyan-950/60 text-cyan-900 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-900 capitalize"
+                >
+                  {item.replace(/_/g, ' ')}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Column 3: Workstation Capacity & Activity State */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <Activity className="w-4 h-4 text-gov-600" />
+              <span>Capacity & Session Activity</span>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+              Workstation ratio: {effectiveTrade?.workstation_capacity_rule?.min_stations_per_candidate || 1.0} per batch student
+            </p>
+            <div className="text-xs space-y-1 text-slate-600 dark:text-slate-300">
+              <div className="flex justify-between">
+                <span>Instructor Zone Rule:</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                  {effectiveTrade?.compliance_checks?.instructor_presence?.enabled ? 'Active (Podium ROI)' : 'Disabled'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Activity State Detection:</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">Active / Idle / Empty</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Sanctioned Equipment Norms Table */}
+        <div className="mt-5 overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">
+                <th className="p-2.5">Sanctioned Item</th>
+                <th className="p-2.5 text-center">Norm Quota</th>
+                <th className="p-2.5">Open-Vocabulary Detector Prompt</th>
+                <th className="p-2.5">Operability CV Heuristic</th>
+                <th className="p-2.5">Equipment Description</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+              {effectiveTrade?.sanctioned_equipment && effectiveTrade.sanctioned_equipment.length > 0 ? (
+                effectiveTrade.sanctioned_equipment.map((eq: any, idx: number) => (
+                  <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
+                    <td className="p-2.5 font-bold capitalize text-slate-900 dark:text-slate-100">{eq.item}</td>
+                    <td className="p-2.5 text-center font-bold text-gov-600 dark:text-gov-400">{eq.expected_per_zone}</td>
+                    <td className="p-2.5 font-mono text-[11px] text-slate-600 dark:text-slate-300 max-w-xs truncate">{eq.detector_prompt}</td>
+                    <td className="p-2.5">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        {eq.operability_heuristic}
+                      </span>
+                    </td>
+                    <td className="p-2.5 text-slate-500 dark:text-slate-400 text-[11px]">{eq.description}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-slate-400">
+                    Loading trade equipment profile...
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -488,6 +695,101 @@ export const CentreDetailPage: React.FC = () => {
         }}
         isSubmitting={reviewMutation.isPending}
       />
+
+      {/* Trade Profile & Zone Overrides Configuration Modal */}
+      {isTradeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl p-6 space-y-5 animate-scale-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
+                  <Wrench className="w-5 h-5" />
+                </span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Configure Centre Trade Profile & Overrides
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsTradeModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Select Master Trade Profile (SSC Standard)
+                </label>
+                <select
+                  value={selectedTradeId}
+                  onChange={(e) => setSelectedTradeId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  {allTrades && allTrades.length > 0 ? (
+                    allTrades.map((t: any) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} ({t.category})
+                      </option>
+                    ))
+                  ) : (
+                    <option value="it_lab">IT & Computer Lab Training</option>
+                  )}
+                </select>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                  Defines baseline equipment quotas, prompt detectors, and required PPE for {centre.name}.
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Zone-Level Overrides & Custom Quotas (JSON)
+                </label>
+                <textarea
+                  rows={8}
+                  value={overridesJson}
+                  onChange={(e) => setOverridesJson(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 font-mono text-[11px] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder='{"sanctioned_equipment": [...], "required_ppe": [...]}'
+                />
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                  Allows customizing specific equipment counts, adding custom tools, or modifying compliance thresholds for this centre.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsTradeModalOpen(false)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={updateTradeMutation.isPending}
+                onClick={() => {
+                  try {
+                    const parsedOverrides = JSON.parse(overridesJson || '{}');
+                    updateTradeMutation.mutate({
+                      trade_id: selectedTradeId,
+                      trade_overrides: parsedOverrides,
+                    });
+                  } catch (err: any) {
+                    alert(`Invalid JSON format in overrides: ${err.message}`);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white transition disabled:opacity-50 shadow-sm"
+              >
+                <Save className="w-4 h-4" />
+                {updateTradeMutation.isPending ? 'Saving Standards...' : 'Save Configuration'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

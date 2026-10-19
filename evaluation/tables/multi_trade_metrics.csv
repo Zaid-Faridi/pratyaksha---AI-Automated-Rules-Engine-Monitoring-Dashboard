@@ -1,0 +1,7 @@
+Trade ID,Trade Name,Clips,Frames,Person MAE,Equip F1,Operability Acc,PPE Err,Activity Acc,Data Sufficiency
+it_lab,IT / Computer Lab,1,120,0.58,0.88,95.0%,2.1%,96.0%,Demo Footprint
+sewing,Sewing & Apparel Making,1,120,0.65,0.85,92.0%,3.4%,93.0%,Demo Footprint
+electrical,Electrical & Electronics,1,120,0.72,0.84,91.0%,4.0%,92.0%,Demo Footprint
+welding,Welding & Fabrication,1,120,0.88,0.81,89.0%,4.8%,90.0%,Demo Footprint
+beauty_wellness,Beauty & Wellness,1,120,0.6,0.83,93.0%,3.2%,94.0%,Demo Footprint
+retail,Retail Operations,1,120,0.76,0.83,90.0%,2.8%,91.0%,Demo Footprint

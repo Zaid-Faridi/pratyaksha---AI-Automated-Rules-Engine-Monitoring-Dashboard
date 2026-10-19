@@ -24,6 +24,26 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class TradeProfile(Base):
+    __tablename__ = "trade_profiles"
+
+    id = Column(String(64), primary_key=True, index=True)  # e.g. "welding", "sewing", "it_lab", "electrical", "beauty_wellness", "retail"
+    name = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    sanctioned_equipment = Column(JSON, default=list)  # [{"item": "...", "expected_count": 10, "detector_prompts": [...], "operability": {...}}]
+    required_ppe = Column(JSON, default=list)  # [{"name": "helmet", "required": true, "min_ratio": 0.8}]
+    safety_items = Column(JSON, default=lambda: ["fire_extinguisher", "first_aid_box"])
+    mandatory_signage = Column(JSON, default=lambda: ["safety_signage", "biometric_device"])
+    workstation_capacity_rule = Column(JSON, default=dict)  # {"ratio": 1.0, "primary_item": "workbench"}
+    compliance_checks = Column(JSON, default=dict)  # {"instructor_presence": true, "ppe_compliance": true, ...}
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    # Relationships
+    centres = relationship("Centre", back_populates="trade_profile")
+
+
 class Centre(Base):
     __tablename__ = "centres"
 
@@ -34,10 +54,13 @@ class Centre(Base):
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
     scheme = Column(String(100), nullable=False, default="PMKVY 4.0")
+    trade_id = Column(String(64), ForeignKey("trade_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
+    trade_overrides = Column(JSON, default=dict)  # Zone-level overrides (e.g. {"zones": {"cutting_zone": {...}}})
     live_streaming_enabled = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=utcnow)
 
     # Relationships
+    trade_profile = relationship("TradeProfile", back_populates="centres")
     cameras = relationship("Camera", back_populates="centre", cascade="all, delete-orphan")
     inventory = relationship("SanctionedInventory", back_populates="centre", cascade="all, delete-orphan")
     batches = relationship("Batch", back_populates="centre", cascade="all, delete-orphan")
@@ -121,6 +144,7 @@ class DetectionEvent(Base):
     infrastructure = Column(JSON, default=list)  # [{"item": "chair", "expected": 6, "detected": 4, "status": "DEFICIT", "operability": "operational", "signals": {...}}]
     is_reliable = Column(Boolean, default=True, nullable=False)
     quality_metrics = Column(JSON, default=dict)
+    compliance_metrics = Column(JSON, default=dict)  # Stores instructor_present, ppe_compliance, safety_items, signage, capacity, activity_state
     created_at = Column(DateTime, default=utcnow)
 
     # Relationships

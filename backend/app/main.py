@@ -21,6 +21,7 @@ from app.routers import (
     inventory,
     reports,
     stream,
+    trades,
 )
 from app.streaming import stream_manager
 
@@ -67,6 +68,7 @@ app.include_router(batches.router)
 app.include_router(alerts.router)
 app.include_router(audit.router)
 app.include_router(reports.router)
+app.include_router(trades.router)
 app.include_router(dashboard.router)
 
 

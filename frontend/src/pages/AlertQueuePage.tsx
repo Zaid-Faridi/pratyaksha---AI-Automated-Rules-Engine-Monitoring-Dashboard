@@ -221,6 +221,12 @@ export const AlertQueuePage: React.FC = () => {
         >
           <option value="all">All Violation Types</option>
           <option value="ATTENDANCE_MISMATCH">Attendance Mismatch</option>
+          <option value="INSTRUCTOR_ABSENT">Instructor Absent from Podium</option>
+          <option value="PPE_VIOLATION">PPE Compliance Violation</option>
+          <option value="SAFETY_EQUIPMENT_MISSING">Safety Equipment Missing</option>
+          <option value="MANDATORY_SIGNAGE_MISSING">Mandatory Signage Missing</option>
+          <option value="CAPACITY_DEFICIT">Workstation Capacity Deficit</option>
+          <option value="ZONE_IDLE_DURING_BATCH">Zone Inactivity / Idle</option>
           <option value="INFRASTRUCTURE_GAP">Infrastructure Gap</option>
           <option value="NON_FUNCTIONAL_EQUIPMENT">Non-Functional Equipment</option>
           <option value="POOR_CAMERA_QUALITY">Poor Camera Quality / Occluded</option>

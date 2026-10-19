@@ -150,3 +150,34 @@ Equipment operability assessment determines whether sanctioned machines appear r
 - **Macro-Spatial Heuristics Only:** Uses visual indicators such as screen luminance variance on monitor panels, proximity of human foot-points to machinery workspaces, and detection of heavy tarps or clutter blocking chairs or workbenches.
 - **No Worker Performance Monitoring:** Pratyaksha does not log individual productivity, keystrokes, facial fatigue, or personal work patterns.
 - **Heuristic Disclaimer:** Operability indicators are visual heuristics of apparent readiness and explicitly do not constitute an engineering diagnostic or maintenance certification.
+
+---
+
+## 11. Privacy Guarantees for Multi-Trade Compliance Checks
+
+Pratyaksha's multi-trade compliance expansion (welding, apparel, IT labs, electrical, beauty & wellness, retail) adheres strictly to the Digital Personal Data Protection (DPDP) Act, 2023. All new automated checks are computed exclusively as macroscopic zone aggregates:
+
+1. **Instructor / Trainer Presence During Batch Hours:**
+   - **Signal:** Detected strictly as an anonymous binary presence signal within the designated demonstration area or podium polygon (e.g., `instructor_podium: 1 person present`).
+   - **Zero Identification:** The system does not identify who the instructor is, does not run facial matching against trainer credential databases, and does not record biometric traits.
+
+2. **Personal Protective Equipment (PPE) Compliance:**
+   - **Signal:** Computed strictly as aggregate counts and percentages per zone (e.g. `Zone B: 8/10 trainees wearing helmets = 80% compliance`).
+   - **Zero Attribution:** PPE compliance is **never attributed to a named or identifiable person**. The rules engine tracks only zone totals, never individuals.
+   - **Zero Person Crops:** The edge agent is architecturally blocked from saving, caching, or exporting individual trainee crops, body cutouts, or face images.
+
+3. **Workshop Safety Items (Fire Extinguisher & First-Aid Box):**
+   - **Signal:** Continuous presence verification of stationary, inanimate safety infrastructure within designated workshop coordinates.
+   - **No Worker Monitoring:** Completely independent of human movement.
+
+4. **Mandatory Signage & Biometric Attendance Terminals:**
+   - **Signal:** Verification of institutional PMKVY/MSDE banners and biometric attendance devices at the entrance ROI.
+   - **Non-Invasive:** Ensures physical infrastructure compliance at the facility level without tracking candidate ingress/egress trajectories.
+
+5. **Workstation Capacity vs Batch Size:**
+   - **Signal:** Aggregate ratio comparison between active, unblocked workbenches and the approved batch candidate count.
+   - **Zero Surveillance:** Protects trainees from overcrowded or under-resourced labs through numerical capacity checks.
+
+6. **Zone Activity State (Active, Idle, Empty):**
+   - **Signal:** Zone-level classification based on aggregate motion energy and equipment interaction over 5-to-15 minute rolling windows.
+   - **No Performance Profiling:** Identifies whether a training session is taking place versus an idle/empty room; does not evaluate or score individual worker speed, efficiency, or behavior.
