@@ -5,7 +5,8 @@ interface KpiCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  topRightNode?: React.ReactNode;
   variant?: 'default' | 'critical' | 'warning' | 'success' | 'info';
   badge?: string;
   className?: string;
@@ -16,6 +17,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   value,
   subtitle,
   icon: Icon,
+  topRightNode,
   variant = 'default',
   badge,
   className = '',
@@ -50,35 +52,45 @@ export const KpiCard: React.FC<KpiCardProps> = ({
 
   return (
     <div
-      className={`rounded-xl p-5 border shadow-sm transition-all hover:shadow-md flex flex-col justify-between h-full min-h-[140px] ${variantStyles.card} ${className}`}
+      className={`rounded-xl p-4 sm:p-5 border shadow-sm transition-all hover:shadow-md flex flex-col justify-between h-full min-h-[140px] ${variantStyles.card} ${className}`}
       role="region"
       aria-label={`${title}: ${value}`}
     >
-      <div className="flex items-center justify-between gap-2 min-w-0">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">
+      {/* Top Header: Label left, Icon or custom top-right element right */}
+      <div className="flex items-start justify-between gap-2 min-w-0">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block leading-tight">
           {title}
         </span>
-        <div className={`p-2 rounded-lg flex-shrink-0 ${variantStyles.iconBg}`}>
-          <Icon className="w-4 h-4" aria-hidden="true" />
+        <div className="flex-shrink-0 flex items-center justify-center">
+          {topRightNode ? (
+            topRightNode
+          ) : Icon ? (
+            <div className={`p-2 rounded-lg ${variantStyles.iconBg}`}>
+              <Icon className="w-4 h-4" aria-hidden="true" />
+            </div>
+          ) : null}
         </div>
       </div>
 
-      <div className="mt-2 flex items-baseline justify-between gap-2 min-w-0">
-        <span className={`text-2xl lg:text-3xl font-extrabold tracking-tight truncate ${variantStyles.valueColor}`}>
-          {value}
-        </span>
-        {badge && (
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex-shrink-0">
-            {badge}
+      {/* Value & Caption */}
+      <div className="mt-3 min-w-0">
+        <div className="flex items-baseline justify-between gap-2 min-w-0">
+          <span className={`text-2xl sm:text-3xl font-extrabold tracking-tight whitespace-nowrap tabular-nums ${variantStyles.valueColor}`}>
+            {value}
           </span>
+          {badge && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex-shrink-0">
+              {badge}
+            </span>
+          )}
+        </div>
+
+        {subtitle && (
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-normal">
+            {subtitle}
+          </p>
         )}
       </div>
-
-      {subtitle && (
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 truncate">
-          {subtitle}
-        </p>
-      )}
     </div>
   );
 };

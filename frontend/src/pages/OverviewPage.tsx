@@ -43,12 +43,12 @@ export const OverviewPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <LoadingSkeleton rows={1} className="h-28" />
-          <LoadingSkeleton rows={1} className="h-28" />
-          <LoadingSkeleton rows={1} className="h-28" />
-          <LoadingSkeleton rows={1} className="h-28" />
-          <LoadingSkeleton rows={1} className="h-28" />
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          <LoadingSkeleton rows={1} className="h-32" />
+          <LoadingSkeleton rows={1} className="h-32" />
+          <LoadingSkeleton rows={1} className="h-32" />
+          <LoadingSkeleton rows={1} className="h-32" />
+          <LoadingSkeleton rows={1} className="h-32" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <LoadingSkeleton rows={1} className="h-80" />
@@ -62,7 +62,6 @@ export const OverviewPage: React.FC = () => {
   if (isError || !summary) {
     return <ErrorState onRetry={() => refetch()} />;
   }
-
 
   return (
     <div className="space-y-7 pb-10">
@@ -103,53 +102,47 @@ export const OverviewPage: React.FC = () => {
       </div>
 
       {/* 5 Top KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         <KpiCard
-          title="Monitored Centres"
+          title="Centres"
           value={summary.total_centres}
-          subtitle="Across 6 Indian States"
+          subtitle="Across 6 states"
           icon={Building2}
           variant="default"
         />
 
-        {/* Rebuilt Avg Compliance Card */}
-        <div className="rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between h-full min-h-[140px] transition-all hover:shadow-md">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 block truncate">
-            Avg Compliance
-          </span>
-          <div className="mt-2 flex items-center justify-between gap-3 min-w-0">
-            <div className="min-w-0 flex-1">
-              <span className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight block truncate">
-                {summary.average_compliance_score.toFixed(1)}%
-              </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block truncate mt-0.5">
-                National benchmark
-              </span>
-            </div>
-            <div className="flex-shrink-0">
-              <ScoreRing score={summary.average_compliance_score} size="md" showLabel={false} />
-            </div>
-          </div>
-        </div>
+        <KpiCard
+          title="Avg compliance"
+          value={`${summary.average_compliance_score.toFixed(1)}%`}
+          subtitle="National benchmark"
+          topRightNode={
+            <ScoreRing
+              score={summary.average_compliance_score}
+              size="sm"
+              showLabel={false}
+            />
+          }
+          variant="default"
+        />
 
         <KpiCard
-          title="Open Alerts"
+          title="Open alerts"
           value={summary.open_alerts_count}
-          subtitle={`${summary.alerts_by_severity?.CRITICAL || 0} critical severity`}
+          subtitle={`${summary.alerts_by_severity?.CRITICAL || 0} critical`}
           icon={AlertTriangle}
           variant={summary.open_alerts_count > 0 ? 'critical' : 'success'}
         />
 
         <KpiCard
-          title="Attendance Mismatches"
+          title="Low attendance"
           value={summary.attendance_mismatches_today}
-          subtitle="Batches below 70% threshold"
+          subtitle="Batches below 70%"
           icon={Users}
           variant={summary.attendance_mismatches_today > 0 ? 'warning' : 'success'}
         />
 
         <KpiCard
-          title="Cameras Offline"
+          title="Cameras offline"
           value={summary.offline_cameras}
           subtitle={`${summary.online_cameras} of ${summary.total_cameras} operational`}
           icon={VideoOff}
