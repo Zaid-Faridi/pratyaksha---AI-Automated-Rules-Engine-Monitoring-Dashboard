@@ -40,7 +40,7 @@ def list_alerts(
     if severity:
         query = query.filter(Alert.severity == severity)
     if status:
-        query = query.filter(Alert.status == status)
+        query = query.filter(Alert.status.ilike(status))
     if start_date:
         query = query.filter(Alert.created_at >= start_date)
     if end_date:

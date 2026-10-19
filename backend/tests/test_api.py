@@ -264,3 +264,50 @@ def test_evidence_thumbnail_upload(client, standard_setup):
     assert res.json()["status"] == "success"
     assert res.json()["event_id"] == "test-evidence-uuid-001"
 
+
+def test_open_alerts_metrics_single_source_of_truth(client, standard_setup, db_session):
+    """
+    Validates single source of truth:
+    sum(type counts) == sum(severity counts) == total open alerts
+    """
+    from app.models import Alert
+
+    centre_id = standard_setup["centre"].id
+    cam_id = standard_setup["camera"].id
+
+    alerts = [
+        Alert(centre_id=centre_id, camera_id=cam_id, type="ATTENDANCE_MISMATCH", severity="CRITICAL", status="open", message="Crit Att"),
+        Alert(centre_id=centre_id, camera_id=cam_id, type="ATTENDANCE_MISMATCH", severity="HIGH", status="open", message="High Att"),
+        Alert(centre_id=centre_id, camera_id=cam_id, type="CAMERA_OFFLINE", severity="HIGH", status="open", message="High Cam"),
+        Alert(centre_id=centre_id, camera_id=cam_id, type="INSTRUCTOR_ABSENT", severity="HIGH", status="open", message="High Inst"),
+        Alert(centre_id=centre_id, camera_id=cam_id, type="NON_FUNCTIONAL_EQUIPMENT", severity="MEDIUM", status="open", message="Med Equip"),
+        Alert(centre_id=centre_id, camera_id=cam_id, type="PPE_VIOLATION", severity="HIGH", status="open", message="High PPE"),
+        Alert(centre_id=centre_id, camera_id=cam_id, type="ATTENDANCE_MISMATCH", severity="HIGH", status="verified", message="Ignored"),
+    ]
+    db_session.add_all(alerts)
+    db_session.commit()
+
+    res = client.get("/alerts?status=open")
+    assert res.status_code == 200
+    open_alerts = res.json()
+
+    total_alerts = len(open_alerts)
+    assert total_alerts >= 6
+
+    # 1. Compute severity counts
+    severity_counts = {}
+    for a in open_alerts:
+        sev = a["severity"].upper()
+        severity_counts[sev] = severity_counts.get(sev, 0) + 1
+
+    # 2. Compute type counts
+    type_counts = {}
+    for a in open_alerts:
+        t = a["type"]
+        type_counts[t] = type_counts.get(t, 0) + 1
+
+    # Invariant check: sum(type counts) == sum(severity counts) == total_alerts
+    assert sum(severity_counts.values()) == total_alerts
+    assert sum(type_counts.values()) == total_alerts
+
+

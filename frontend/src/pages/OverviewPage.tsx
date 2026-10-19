@@ -40,6 +40,12 @@ export const OverviewPage: React.FC = () => {
     refetchInterval: 30000, // Auto-refresh every 30s
   });
 
+  const { data: openAlerts, isLoading: isAlertsLoading } = useQuery({
+    queryKey: ['openAlertsList'],
+    queryFn: () => api.getAlerts({ status: 'open' }),
+    refetchInterval: 15000,
+  });
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -155,11 +161,13 @@ export const OverviewPage: React.FC = () => {
 
       {/* Charts Section: Alerts Breakdown & Compliance Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Replaced Active Alerts Breakdown Panel */}
+        {/* Redesigned Active Alerts Breakdown Panel */}
         <ActiveAlertsPanel
+          alerts={openAlerts}
           alertsByType={summary.alerts_by_type}
           alertsBySeverity={summary.alerts_by_severity}
           totalAlerts={summary.open_alerts_count}
+          isLoading={isAlertsLoading}
         />
 
         {/* 7-Day Compliance Trend */}
