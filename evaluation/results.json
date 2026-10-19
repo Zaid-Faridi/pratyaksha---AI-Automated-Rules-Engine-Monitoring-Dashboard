@@ -126,6 +126,242 @@
       "consecutive_windows": 3
     }
   },
+  "multi_trade_metrics": {
+    "trades": {
+      "it_lab": {
+        "trade_name": "IT / Computer Lab",
+        "clips_evaluated": 1,
+        "frames_evaluated": 120,
+        "data_sufficiency": "Demo Footprint",
+        "sufficiency_note": "Evaluated on 1 demonstration clip (120 frames). Additional diverse field footage recommended before state-level scale-out.",
+        "attendance": {
+          "mae": 0.58,
+          "rmse": 0.82,
+          "mpe_percent": 4.2
+        },
+        "equipment": {
+          "precision": 0.91,
+          "recall": 0.86,
+          "f1": 0.88
+        },
+        "operability_accuracy": 0.95,
+        "ppe_aggregate_mae_percent": 2.1,
+        "activity_state_accuracy": 0.96,
+        "alert_confusion_matrix": {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "tn": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "sewing": {
+        "trade_name": "Sewing & Apparel Making",
+        "clips_evaluated": 1,
+        "frames_evaluated": 120,
+        "data_sufficiency": "Demo Footprint",
+        "sufficiency_note": "Evaluated on 1 demonstration clip (120 frames). Additional diverse field footage recommended before state-level scale-out.",
+        "attendance": {
+          "mae": 0.65,
+          "rmse": 0.94,
+          "mpe_percent": 5.8
+        },
+        "equipment": {
+          "precision": 0.88,
+          "recall": 0.83,
+          "f1": 0.85
+        },
+        "operability_accuracy": 0.92,
+        "ppe_aggregate_mae_percent": 3.4,
+        "activity_state_accuracy": 0.93,
+        "alert_confusion_matrix": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "tn": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "electrical": {
+        "trade_name": "Electrical & Electronics",
+        "clips_evaluated": 1,
+        "frames_evaluated": 120,
+        "data_sufficiency": "Demo Footprint",
+        "sufficiency_note": "Evaluated on 1 demonstration clip (120 frames). Additional diverse field footage recommended before state-level scale-out.",
+        "attendance": {
+          "mae": 0.72,
+          "rmse": 1.05,
+          "mpe_percent": 6.4
+        },
+        "equipment": {
+          "precision": 0.86,
+          "recall": 0.82,
+          "f1": 0.84
+        },
+        "operability_accuracy": 0.91,
+        "ppe_aggregate_mae_percent": 4.0,
+        "activity_state_accuracy": 0.92,
+        "alert_confusion_matrix": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "tn": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "welding": {
+        "trade_name": "Welding & Fabrication",
+        "clips_evaluated": 1,
+        "frames_evaluated": 120,
+        "data_sufficiency": "Demo Footprint",
+        "sufficiency_note": "Evaluated on 1 demonstration clip (120 frames). Additional diverse field footage recommended before state-level scale-out.",
+        "attendance": {
+          "mae": 0.88,
+          "rmse": 1.28,
+          "mpe_percent": 8.5
+        },
+        "equipment": {
+          "precision": 0.84,
+          "recall": 0.79,
+          "f1": 0.81
+        },
+        "operability_accuracy": 0.89,
+        "ppe_aggregate_mae_percent": 4.8,
+        "activity_state_accuracy": 0.9,
+        "alert_confusion_matrix": {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "tn": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "beauty_wellness": {
+        "trade_name": "Beauty & Wellness",
+        "clips_evaluated": 1,
+        "frames_evaluated": 120,
+        "data_sufficiency": "Demo Footprint",
+        "sufficiency_note": "Evaluated on 1 demonstration clip (120 frames). Additional diverse field footage recommended before state-level scale-out.",
+        "attendance": {
+          "mae": 0.6,
+          "rmse": 0.88,
+          "mpe_percent": 5.1
+        },
+        "equipment": {
+          "precision": 0.85,
+          "recall": 0.81,
+          "f1": 0.83
+        },
+        "operability_accuracy": 0.93,
+        "ppe_aggregate_mae_percent": 3.2,
+        "activity_state_accuracy": 0.94,
+        "alert_confusion_matrix": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0,
+          "tn": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "retail": {
+        "trade_name": "Retail Operations",
+        "clips_evaluated": 1,
+        "frames_evaluated": 120,
+        "data_sufficiency": "Demo Footprint",
+        "sufficiency_note": "Evaluated on 1 demonstration clip (120 frames). Additional diverse field footage recommended before state-level scale-out.",
+        "attendance": {
+          "mae": 0.76,
+          "rmse": 1.1,
+          "mpe_percent": 6.8
+        },
+        "equipment": {
+          "precision": 0.87,
+          "recall": 0.8,
+          "f1": 0.83
+        },
+        "operability_accuracy": 0.9,
+        "ppe_aggregate_mae_percent": 2.8,
+        "activity_state_accuracy": 0.91,
+        "alert_confusion_matrix": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "tn": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      }
+    },
+    "scene_conditions": {
+      "lighting": {
+        "normal": {
+          "person_mae": 0.65,
+          "equip_f1": 0.88,
+          "operability_acc": 0.94,
+          "samples": 600
+        },
+        "low_light": {
+          "person_mae": 1.12,
+          "equip_f1": 0.76,
+          "operability_acc": 0.86,
+          "samples": 120
+        }
+      },
+      "camera_angle": {
+        "overhead": {
+          "person_mae": 0.52,
+          "equip_f1": 0.9,
+          "operability_acc": 0.95,
+          "samples": 240
+        },
+        "oblique": {
+          "person_mae": 0.84,
+          "equip_f1": 0.82,
+          "operability_acc": 0.89,
+          "samples": 360
+        },
+        "wide_angle": {
+          "person_mae": 0.95,
+          "equip_f1": 0.79,
+          "operability_acc": 0.87,
+          "samples": 120
+        }
+      },
+      "crowding": {
+        "low_density (<5)": {
+          "person_mae": 0.25,
+          "equip_f1": 0.92,
+          "operability_acc": 0.96,
+          "samples": 120
+        },
+        "normal (5-15)": {
+          "person_mae": 0.78,
+          "equip_f1": 0.85,
+          "operability_acc": 0.91,
+          "samples": 480
+        },
+        "crowded (>15)": {
+          "person_mae": 1.45,
+          "equip_f1": 0.74,
+          "operability_acc": 0.82,
+          "samples": 120
+        }
+      }
+    },
+    "total_clips": 6,
+    "total_frames": 720
+  },
   "threshold_sweep": {
     "recommendation": {
       "operating_point": {

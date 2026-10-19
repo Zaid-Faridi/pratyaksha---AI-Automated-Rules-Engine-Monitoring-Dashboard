@@ -19,6 +19,7 @@ from app.models import (
     Centre,
     DetectionEvent,
     SanctionedInventory,
+    TradeProfile,
     utcnow,
 )
 
@@ -569,6 +570,352 @@ class RulesEngine:
 
         return None
 
+    # --- Rule 5.5: Multi-Trade Additional Compliance Checks ---
+    @classmethod
+    def evaluate_trade_compliance_checks(
+        cls,
+        db: Session,
+        centre_id: str,
+        camera: Camera,
+        zone: str,
+        event_time: datetime,
+        current_event: DetectionEvent,
+    ) -> List[Alert]:
+        """
+        Evaluate additional compliance checks configured for the centre's trade profile:
+        1. INSTRUCTOR_ABSENT: Trainer absent from demonstration dais during active batch
+        2. PPE_VIOLATION: Aggregate safety gear compliance below trade threshold
+        3. SAFETY_EQUIPMENT_MISSING: Fire extinguisher or first-aid box absent
+        4. MANDATORY_SIGNAGE_MISSING: Government scheme signage or biometric terminal absent
+        5. CAPACITY_DEFICIT: Workstations / seats insufficient for claimed batch size
+        6. ZONE_IDLE_DURING_BATCH: Trainees idle with zero equipment engagement during class hours
+        """
+        alerts_raised: List[Alert] = []
+        centre = db.query(Centre).filter(Centre.id == centre_id).first()
+        if not centre:
+            return alerts_raised
+
+        tp = centre.trade_profile if centre.trade_profile else None
+        if not tp and centre.trade_id:
+            tp = db.query(TradeProfile).filter(TradeProfile.id == centre.trade_id).first()
+
+        trade_checks = tp.compliance_checks if tp and tp.compliance_checks else {
+            "instructor_presence": True,
+            "ppe_compliance": True,
+            "safety_items": True,
+            "signage": True,
+            "capacity": True,
+            "activity_state": True,
+        }
+        if centre.trade_overrides and "compliance_checks" in centre.trade_overrides:
+            trade_checks.update(centre.trade_overrides["compliance_checks"])
+
+        active_batches = cls.get_active_batches(db, centre_id, event_time, zone=zone)
+        metrics = current_event.compliance_metrics or {}
+        trade_name = tp.name if tp else "Vocational Trade"
+
+        # Check 1: Instructor Presence
+        if trade_checks.get("instructor_presence", True):
+            open_inst_alert = db.query(Alert).filter(
+                Alert.centre_id == centre_id,
+                Alert.camera_id == camera.id,
+                Alert.zone == zone,
+                Alert.type == "INSTRUCTOR_ABSENT",
+                Alert.status == "open",
+            ).first()
+
+            if active_batches:
+                inst_present = metrics.get("instructor_present", True)
+                if not inst_present:
+                    k_windows = settings.instructor_consecutive_windows
+                    recent = db.query(DetectionEvent).filter(
+                        DetectionEvent.camera_id == camera.id,
+                        DetectionEvent.zone == zone,
+                        DetectionEvent.timestamp <= event_time,
+                    ).order_by(DetectionEvent.timestamp.desc()).limit(k_windows).all()
+
+                    all_absent = (
+                        len(recent) >= k_windows
+                        and all(not (e.compliance_metrics or {}).get("instructor_present", True) for e in recent)
+                    )
+                    if all_absent and not open_inst_alert:
+                        b_name = active_batches[0].name
+                        alert = Alert(
+                            centre_id=centre_id,
+                            camera_id=camera.id,
+                            zone=zone,
+                            type="INSTRUCTOR_ABSENT",
+                            severity="HIGH",
+                            message=(
+                                f"Trainer/instructor absent from demonstration podium during active batch '{b_name}' "
+                                f"in zone '{zone}' (sustained for {k_windows} consecutive windows)."
+                            ),
+                            status="open",
+                        )
+                        db.add(alert)
+                        db.commit()
+                        db.refresh(alert)
+                        alerts_raised.append(alert)
+                else:
+                    if open_inst_alert:
+                        open_inst_alert.status = "auto_resolved"
+                        open_inst_alert.review_notes = "Auto-resolved: Instructor detected in demonstration zone."
+                        open_inst_alert.reviewed_at = utcnow()
+                        db.commit()
+            else:
+                if open_inst_alert:
+                    open_inst_alert.status = "auto_resolved"
+                    open_inst_alert.review_notes = "Auto-resolved: Batch window ended."
+                    open_inst_alert.reviewed_at = utcnow()
+                    db.commit()
+
+        # Check 2: Aggregate PPE Compliance
+        if trade_checks.get("ppe_compliance", True) and tp and tp.required_ppe:
+            open_ppe_alert = db.query(Alert).filter(
+                Alert.centre_id == centre_id,
+                Alert.camera_id == camera.id,
+                Alert.zone == zone,
+                Alert.type == "PPE_VIOLATION",
+                Alert.status == "open",
+            ).first()
+
+            ppe_info = metrics.get("ppe_compliance", {})
+            compliance_pct = ppe_info.get("compliance_pct", 100.0)
+            is_compliant = ppe_info.get("is_compliant", True)
+            trainees_count = ppe_info.get("total_trainees", current_event.person_count_raw)
+
+            if trainees_count >= 2 and not is_compliant:
+                k_windows = settings.ppe_consecutive_windows
+                recent = db.query(DetectionEvent).filter(
+                    DetectionEvent.camera_id == camera.id,
+                    DetectionEvent.zone == zone,
+                    DetectionEvent.timestamp <= event_time,
+                ).order_by(DetectionEvent.timestamp.desc()).limit(k_windows).all()
+
+                all_violating = (
+                    len(recent) >= k_windows
+                    and all(not (e.compliance_metrics or {}).get("ppe_compliance", {}).get("is_compliant", True) for e in recent)
+                )
+                if all_violating and not open_ppe_alert:
+                    sev = "HIGH" if tp.id in ["welding", "electrical"] else "MEDIUM"
+                    alert = Alert(
+                        centre_id=centre_id,
+                        camera_id=camera.id,
+                        zone=zone,
+                        type="PPE_VIOLATION",
+                        severity=sev,
+                        message=(
+                            f"Safety compliance violation in {trade_name} zone '{zone}': "
+                            f"Aggregate PPE compliance is {compliance_pct}% (below mandatory 75% threshold). "
+                            f"Observed {trainees_count} trainees in active trade workshop."
+                        ),
+                        status="open",
+                    )
+                    db.add(alert)
+                    db.commit()
+                    db.refresh(alert)
+                    alerts_raised.append(alert)
+            elif is_compliant or trainees_count < 2:
+                if open_ppe_alert:
+                    open_ppe_alert.status = "auto_resolved"
+                    open_ppe_alert.review_notes = f"Auto-resolved: Aggregate PPE compliance restored to {compliance_pct}%."
+                    open_ppe_alert.reviewed_at = utcnow()
+                    db.commit()
+
+        # Check 3: Safety Items Presence
+        if trade_checks.get("safety_items", True):
+            open_safety_alert = db.query(Alert).filter(
+                Alert.centre_id == centre_id,
+                Alert.camera_id == camera.id,
+                Alert.zone == zone,
+                Alert.type == "SAFETY_EQUIPMENT_MISSING",
+                Alert.status == "open",
+            ).first()
+
+            safety_info = metrics.get("safety_items", {})
+            all_present = safety_info.get("all_present", True)
+            missing = safety_info.get("missing_items", [])
+
+            if not all_present and missing:
+                k_samples = settings.safety_consecutive_samples
+                recent = db.query(DetectionEvent).filter(
+                    DetectionEvent.camera_id == camera.id,
+                    DetectionEvent.zone == zone,
+                    DetectionEvent.timestamp <= event_time,
+                ).order_by(DetectionEvent.timestamp.desc()).limit(k_samples).all()
+
+                all_missing = (
+                    len(recent) >= k_samples
+                    and all(not (e.compliance_metrics or {}).get("safety_items", {}).get("all_present", True) for e in recent)
+                )
+                if all_missing and not open_safety_alert:
+                    missing_str = ", ".join(m.replace("_", " ").title() for m in missing)
+                    alert = Alert(
+                        centre_id=centre_id,
+                        camera_id=camera.id,
+                        zone=zone,
+                        type="SAFETY_EQUIPMENT_MISSING",
+                        severity="HIGH",
+                        message=(
+                            f"Mandatory safety infrastructure absent in '{zone}': "
+                            f"{missing_str} not detected for {k_samples} consecutive samples."
+                        ),
+                        status="open",
+                    )
+                    db.add(alert)
+                    db.commit()
+                    db.refresh(alert)
+                    alerts_raised.append(alert)
+            elif all_present:
+                if open_safety_alert:
+                    open_safety_alert.status = "auto_resolved"
+                    open_safety_alert.review_notes = "Auto-resolved: Mandatory safety equipment detected."
+                    open_safety_alert.reviewed_at = utcnow()
+                    db.commit()
+
+        # Check 4: Mandatory Signage & Attendance Device
+        if trade_checks.get("signage", True):
+            open_sign_alert = db.query(Alert).filter(
+                Alert.centre_id == centre_id,
+                Alert.camera_id == camera.id,
+                Alert.zone == zone,
+                Alert.type == "MANDATORY_SIGNAGE_MISSING",
+                Alert.status == "open",
+            ).first()
+
+            sign_info = metrics.get("signage_and_devices", {})
+            all_visible = sign_info.get("all_visible", True)
+            missing_signs = sign_info.get("missing_signage", [])
+
+            if not all_visible and missing_signs:
+                k_samples = settings.signage_consecutive_samples
+                recent = db.query(DetectionEvent).filter(
+                    DetectionEvent.camera_id == camera.id,
+                    DetectionEvent.zone == zone,
+                    DetectionEvent.timestamp <= event_time,
+                ).order_by(DetectionEvent.timestamp.desc()).limit(k_samples).all()
+
+                all_miss = (
+                    len(recent) >= k_samples
+                    and all(not (e.compliance_metrics or {}).get("signage_and_devices", {}).get("all_visible", True) for e in recent)
+                )
+                if all_miss and not open_sign_alert:
+                    missing_str = ", ".join(s.replace("_", " ").title() for s in missing_signs)
+                    alert = Alert(
+                        centre_id=centre_id,
+                        camera_id=camera.id,
+                        zone=zone,
+                        type="MANDATORY_SIGNAGE_MISSING",
+                        severity="MEDIUM",
+                        message=(
+                            f"Scheme signage / terminal missing in '{zone}': "
+                            f"{missing_str} not visible for {k_samples} consecutive samples."
+                        ),
+                        status="open",
+                    )
+                    db.add(alert)
+                    db.commit()
+                    db.refresh(alert)
+                    alerts_raised.append(alert)
+            elif all_visible:
+                if open_sign_alert:
+                    open_sign_alert.status = "auto_resolved"
+                    open_sign_alert.review_notes = "Auto-resolved: Mandatory signage/biometric device verified."
+                    open_sign_alert.reviewed_at = utcnow()
+                    db.commit()
+
+        # Check 5: Workstation / Seating Capacity vs Batch Size
+        if trade_checks.get("capacity", True) and active_batches:
+            open_cap_alert = db.query(Alert).filter(
+                Alert.centre_id == centre_id,
+                Alert.camera_id == camera.id,
+                Alert.zone == zone,
+                Alert.type == "CAPACITY_DEFICIT",
+                Alert.status == "open",
+            ).first()
+
+            cap_info = metrics.get("capacity_check", {})
+            is_adequate = cap_info.get("is_adequate", True)
+            deficit = cap_info.get("station_deficit", 0)
+
+            if not is_adequate and deficit > 0:
+                if not open_cap_alert:
+                    avail = cap_info.get("available_workstations", 0)
+                    batch_sz = cap_info.get("batch_size", 0)
+                    alert = Alert(
+                        centre_id=centre_id,
+                        camera_id=camera.id,
+                        zone=zone,
+                        type="CAPACITY_DEFICIT",
+                        severity="MEDIUM",
+                        message=(
+                            f"Workstation capacity deficit in '{zone}': {avail} operational stations "
+                            f"cannot accommodate scheduled batch size of {batch_sz} (deficit: {deficit} stations)."
+                        ),
+                        status="open",
+                    )
+                    db.add(alert)
+                    db.commit()
+                    db.refresh(alert)
+                    alerts_raised.append(alert)
+            elif is_adequate:
+                if open_cap_alert:
+                    open_cap_alert.status = "auto_resolved"
+                    open_cap_alert.review_notes = "Auto-resolved: Workstation capacity adequate for active batch."
+                    open_cap_alert.reviewed_at = utcnow()
+                    db.commit()
+
+        # Check 6: Zone Activity State (Active vs Idle)
+        if trade_checks.get("activity_state", True) and active_batches:
+            open_idle_alert = db.query(Alert).filter(
+                Alert.centre_id == centre_id,
+                Alert.camera_id == camera.id,
+                Alert.zone == zone,
+                Alert.type == "ZONE_IDLE_DURING_BATCH",
+                Alert.status == "open",
+            ).first()
+
+            act_state = metrics.get("activity_state", "active")
+            if act_state == "idle":
+                k_samples = settings.activity_idle_consecutive_samples
+                recent = db.query(DetectionEvent).filter(
+                    DetectionEvent.camera_id == camera.id,
+                    DetectionEvent.zone == zone,
+                    DetectionEvent.timestamp <= event_time,
+                ).order_by(DetectionEvent.timestamp.desc()).limit(k_samples).all()
+
+                all_idle = (
+                    len(recent) >= k_samples
+                    and all((e.compliance_metrics or {}).get("activity_state") == "idle" for e in recent)
+                )
+                if all_idle and not open_idle_alert:
+                    b_name = active_batches[0].name
+                    trainees = current_event.person_count_raw
+                    alert = Alert(
+                        centre_id=centre_id,
+                        camera_id=camera.id,
+                        zone=zone,
+                        type="ZONE_IDLE_DURING_BATCH",
+                        severity="MEDIUM",
+                        message=(
+                            f"Unscheduled idle session detected during batch '{b_name}' in zone '{zone}': "
+                            f"{trainees} trainees present with zero machine engagement or instructional motion for {k_samples} windows."
+                        ),
+                        status="open",
+                    )
+                    db.add(alert)
+                    db.commit()
+                    db.refresh(alert)
+                    alerts_raised.append(alert)
+            elif act_state in ["active", "empty"]:
+                if open_idle_alert:
+                    open_idle_alert.status = "auto_resolved"
+                    open_idle_alert.review_notes = f"Auto-resolved: Zone activity state changed to '{act_state}'."
+                    open_idle_alert.reviewed_at = utcnow()
+                    db.commit()
+
+        return alerts_raised
+
     # --- Rule 6: Weighted Compliance Score (0 - 100) ---
     @classmethod
     def calculate_compliance_score(
@@ -650,12 +997,30 @@ class RulesEngine:
         else:
             camera_rate = 1.0
 
+        # 4. Compliance Checks Rate
+        compliance_alert_types = [
+            "INSTRUCTOR_ABSENT",
+            "PPE_VIOLATION",
+            "SAFETY_EQUIPMENT_MISSING",
+            "MANDATORY_SIGNAGE_MISSING",
+            "CAPACITY_DEFICIT",
+            "ZONE_IDLE_DURING_BATCH",
+        ]
+        open_compliance_alerts = db.query(Alert).filter(
+            Alert.centre_id == centre_id,
+            Alert.type.in_(compliance_alert_types),
+            Alert.status == "open",
+        ).count()
+        comp_rate = max(0.0, 1.0 - (0.20 * open_compliance_alerts))
+
         # Weighted calculation
         w_att = settings.compliance_weight_attendance
         w_inf = settings.compliance_weight_infrastructure
         w_cam = settings.compliance_weight_camera
 
-        raw_score = (w_att * att_rate) + (w_inf * infra_rate) + (w_cam * camera_rate)
+        base_score = (w_att * att_rate) + (w_inf * infra_rate) + (w_cam * camera_rate)
+        # Apply compliance factor (deducts mildly if safety/instructor violations exist)
+        raw_score = base_score * (0.90 + 0.10 * comp_rate)
         final_score = round(max(0.0, min(100.0, raw_score * 100.0)), 1)
 
         # Status categorization
@@ -677,6 +1042,7 @@ class RulesEngine:
             "compliance_score": final_score,
             "attendance_rate": round(att_rate, 3),
             "infrastructure_availability_rate": round(infra_rate, 3),
+            "compliance_checks_rate": round(comp_rate, 3),
             "camera_uptime_rate": round(camera_rate, 3),
             "open_alerts_count": open_alerts,
             "weights": {

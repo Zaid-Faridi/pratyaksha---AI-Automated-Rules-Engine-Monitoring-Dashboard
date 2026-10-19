@@ -17,6 +17,9 @@ export interface Centre {
   lat: number;
   lng: number;
   scheme: string;
+  trade_id?: string;
+  trade_overrides?: Record<string, any>;
+  compliance_score?: number;
   live_streaming_enabled?: boolean;
   created_at: string;
 }
@@ -47,9 +50,39 @@ export interface LiveAlertTickerItem {
   timestamp: string;
 }
 
+export interface LiveComplianceMetrics {
+  instructor_present: boolean;
+  ppe_compliance: {
+    wearing_count: number;
+    total_persons: number;
+    compliance_rate: number;
+    status: 'COMPLIANT' | 'DEFICIT';
+  };
+  safety_items: {
+    fire_extinguisher: boolean;
+    first_aid_box: boolean;
+    status: 'COMPLIANT' | 'DEFICIT';
+  };
+  mandatory_signage: {
+    biometric_device: boolean;
+    signage: boolean;
+    status: 'COMPLIANT' | 'DEFICIT';
+  };
+  workstation_capacity: {
+    claimed: number;
+    capacity: number;
+    status: 'COMPLIANT' | 'DEFICIT';
+  };
+  activity_state: 'ACTIVE' | 'IDLE' | 'EMPTY';
+}
+
 export interface LiveTelemetryPayload {
   camera_id: string;
   centre_id: string;
+  trade_id?: string;
+  trade_name?: string;
+  centre_name?: string;
+  scenario?: string;
   timestamp: string;
   fps: number;
   status: 'online' | 'offline' | 'tampered';
@@ -62,7 +95,40 @@ export interface LiveTelemetryPayload {
     claimed_attendance: number;
   };
   equipment: LiveEquipmentStatus[];
+  compliance_metrics?: LiveComplianceMetrics;
   recent_alerts: LiveAlertTickerItem[];
+}
+
+export interface WallCentreItem {
+  centre_id: string;
+  centre_name: string;
+  state: string;
+  district: string;
+  trade_id: string;
+  camera_id: string;
+  stream_url: string;
+  snapshot_url: string;
+  current_headcount: number;
+  claimed_attendance: number;
+  compliance_score: number;
+  active_alerts_count: number;
+  camera_status: string;
+  current_scenario: string;
+}
+
+export interface TradeProfile {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  sanctioned_equipment: any[];
+  required_ppe: any[];
+  safety_items: any[];
+  mandatory_signage: any[];
+  workstation_capacity_rule: Record<string, any>;
+  compliance_checks: Record<string, boolean>;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface LiveCameraStatus {

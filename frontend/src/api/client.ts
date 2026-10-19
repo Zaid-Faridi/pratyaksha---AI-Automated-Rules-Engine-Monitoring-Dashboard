@@ -218,10 +218,13 @@ export const api = {
       { method: 'POST' }
     ),
 
-  getCameraStreamUrl: (cameraId: string, options?: { claimedAttendance?: number; demo?: boolean }) => {
+  getCameraStreamUrl: (cameraId: string, options?: { claimedAttendance?: number; demo?: boolean; scenario?: string; maxWidth?: number; fps?: number }) => {
     const params = new URLSearchParams();
     if (options?.claimedAttendance !== undefined) params.set('claimed_attendance', String(options.claimedAttendance));
     if (options?.demo !== undefined) params.set('demo', String(options.demo));
+    if (options?.scenario) params.set('scenario', options.scenario);
+    if (options?.maxWidth) params.set('max_width', String(options.maxWidth));
+    if (options?.fps) params.set('fps', String(options.fps));
     const query = params.toString() ? `?${params.toString()}` : '';
     return `${BASE_URL}/cameras/${cameraId}/stream${query}`;
   },
@@ -237,8 +240,8 @@ export const api = {
   getCameraLiveStatus: (cameraId: string) =>
     request<LiveCameraStatus>(`/cameras/${cameraId}/live-status`),
 
-  updateDemoConfig: (cameraId: string, payload: { claimed_attendance?: number; demo_mode?: boolean }) =>
-    request<{ status: string; camera_id: string; claimed_attendance: number; demo_mode: boolean }>(
+  updateDemoConfig: (cameraId: string, payload: { claimed_attendance?: number; demo_mode?: boolean; scenario?: string }) =>
+    request<{ status: string; camera_id: string; claimed_attendance: number; demo_mode: boolean; scenario?: string }>(
       `/cameras/${cameraId}/demo-config`,
       {
         method: 'POST',
@@ -254,6 +257,32 @@ export const api = {
         body: JSON.stringify({ enabled }),
       }
     ),
+
+  // --- Multi-Centre Wall & Manifest ---
+  getStreamingManifest: () => request<any>('/streaming/manifest'),
+
+  getMultiCentreWall: () =>
+    request<{ count: number; wall_centres: any[] }>('/streaming/wall'),
+
+  // --- Trade Profiles ---
+  getTrades: () => request<any[]>('/trades'),
+
+  getTrade: (id: string) => request<any>(`/trades/${id}`),
+
+  updateTrade: (id: string, payload: any) =>
+    request<any>(`/trades/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+
+  getCentreEffectiveTrade: (centreId: string) =>
+    request<any>(`/trades/centres/${centreId}/effective`),
+
+  updateCentreTradeOverrides: (centreId: string, payload: { trade_id?: string; trade_overrides?: any }) =>
+    request<any>(`/trades/centres/${centreId}/effective`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
 
   // --- Centre Portal & Claimed Attendance Submission ---
   getBatches: (centreId?: string) => {

@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """
-Database Seed Script for Pratyaksha Backend.
+Database Seed Script for Pratyaksha Backend with Multi-Trade & Multi-Centre Support.
 Creates:
-- 5 Skilling Centres across Indian states (Maharashtra, UP, Karnataka, Odisha, Rajasthan)
-- Cameras with zone definitions
-- Sanctioned inventory baselines
+- 6 Standard Vocational Trade Profiles (Welding, Sewing, IT Lab, Electrical, Beauty & Wellness, Retail)
+- 6 Skilling Centres mapped to trades across Indian states
+- Real cameras, multi-zone configurations, and sanctioned equipment baselines
 - Training batches with operational schedules
-- 3 days of claimed attendance records
-- 3 days of simulated detection events with intentional violations:
-    1. Varanasi: Severe attendance shortfall (claimed 25 vs observed 8)
-    2. Bengaluru: Infrastructure deficit (sanctioned 15 computers vs detected 6)
-    3. Bhubaneswar: Camera offline / tamper during batch hours
-    4. Pune: High compliance benchmark (attendance & equipment matching)
-    5. Jaipur: Moderate compliance with minor equipment surplus
+- Claimed attendance records
+- Seeded detection events with rich compliance metrics demonstrating key violations:
+    1. Pune (IT Lab): High compliance benchmark (attendance, equipment, instructor present)
+    2. Varanasi (Sewing): Attendance shortfall (claimed 25 vs 8 observed)
+    3. Bengaluru (Electrical): Missing safety equipment & equipment deficit (fire extinguisher missing)
+    4. Bhubaneswar (Welding): Severe PPE violation (35% compliance, missing helmets/gloves) & camera offline
+    5. Jaipur (Beauty & Wellness): Capacity deficit & missing scheme signage
+    6. Delhi (Retail): Instructor absent from demonstration area during active batch
 """
 
 from datetime import datetime, date, time, timedelta, timezone
@@ -33,9 +34,11 @@ from app.models import (
     AttendanceRecord,
     DetectionEvent,
     Alert,
+    TradeProfile,
     utcnow,
 )
 from app.rules_engine import RulesEngine
+from app.routers.trades import sync_trade_profiles_from_yaml
 
 
 def seed():
@@ -45,7 +48,12 @@ def seed():
     db = SessionLocal()
 
     try:
-        print("[INFO] Creating 5 sample skilling centres...")
+        print("[INFO] Seeding 6 vocational trade profiles from trade_profiles.yaml...")
+        sync_trade_profiles_from_yaml(db)
+        tp_count = db.query(TradeProfile).count()
+        print(f"       Loaded {tp_count} trade profiles.")
+
+        print("[INFO] Creating 6 multi-trade sample skilling centres...")
         centres_data = [
             Centre(
                 id="centre_mh_01",
@@ -55,6 +63,7 @@ def seed():
                 lat=18.5204,
                 lng=73.8567,
                 scheme="PMKVY 4.0",
+                trade_id="it_lab",
             ),
             Centre(
                 id="centre_up_02",
@@ -64,6 +73,7 @@ def seed():
                 lat=25.3176,
                 lng=82.9739,
                 scheme="DDU-GKY",
+                trade_id="sewing",
             ),
             Centre(
                 id="centre_ka_03",
@@ -73,6 +83,7 @@ def seed():
                 lat=12.9716,
                 lng=77.5946,
                 scheme="PMKVY 4.0",
+                trade_id="electrical",
             ),
             Centre(
                 id="centre_or_04",
@@ -82,6 +93,7 @@ def seed():
                 lat=20.2961,
                 lng=85.8245,
                 scheme="STRIVE",
+                trade_id="welding",
             ),
             Centre(
                 id="centre_rj_05",
@@ -91,77 +103,119 @@ def seed():
                 lat=26.9124,
                 lng=75.7873,
                 scheme="CRAFTSMEN_TRAINING",
+                trade_id="beauty_wellness",
+            ),
+            Centre(
+                id="centre_dl_06",
+                name="Delhi National Capital Training Centre",
+                state="Delhi",
+                district="South Delhi",
+                lat=28.6139,
+                lng=77.2090,
+                scheme="PMKVY 4.0",
+                trade_id="retail",
             ),
         ]
         db.add_all(centres_data)
         db.commit()
 
-        print("[INFO] Adding cameras and zone configurations...")
+        print("[INFO] Adding cameras and multi-zone configurations...")
         cameras_data = [
             Camera(
                 id="cam_01",
                 centre_id="centre_mh_01",
-                zone_names=["classroom", "workshop"],
+                zone_names=["classroom", "computer_lab", "instructor_podium"],
                 status="online",
-                rtsp_url="rtsp://pune-feed.internal/stream1",
+                rtsp_url="demo_footage/centre_mh_01/cam_01.mp4",
             ),
             Camera(
                 id="cam_mh_01",
                 centre_id="centre_mh_01",
-                zone_names=["classroom", "workshop"],
+                zone_names=["classroom", "computer_lab"],
                 status="online",
-                rtsp_url="rtsp://pune-feed.internal/stream1",
+                rtsp_url="demo_footage/centre_mh_01/cam_01.mp4",
             ),
             Camera(
                 id="cam_up_01",
                 centre_id="centre_up_02",
-                zone_names=["classroom"],
+                zone_names=["cutting_zone", "stitching_line"],
                 status="online",
-                rtsp_url="rtsp://varanasi-feed.internal/stream1",
+                rtsp_url="demo_footage/centre_up_02/cam_up_01.mp4",
             ),
             Camera(
                 id="cam_ka_01",
                 centre_id="centre_ka_03",
-                zone_names=["computer_lab"],
+                zone_names=["workstations", "testing_bench"],
                 status="online",
-                rtsp_url="rtsp://blr-feed.internal/stream1",
+                rtsp_url="demo_footage/centre_ka_03/cam_ka_01.mp4",
             ),
             Camera(
                 id="cam_or_01",
                 centre_id="centre_or_04",
-                zone_names=["workshop"],
+                zone_names=["welding_bays", "grinding_area"],
                 status="offline",
-                rtsp_url="rtsp://bbsr-feed.internal/stream1",
+                rtsp_url="demo_footage/centre_or_04/cam_or_01.mp4",
             ),
             Camera(
                 id="cam_rj_01",
                 centre_id="centre_rj_05",
-                zone_names=["classroom"],
+                zone_names=["styling_stations", "reception"],
                 status="online",
-                rtsp_url="rtsp://jaipur-feed.internal/stream1",
+                rtsp_url="demo_footage/centre_rj_05/cam_rj_01.mp4",
+            ),
+            Camera(
+                id="cam_dl_01",
+                centre_id="centre_dl_06",
+                zone_names=["checkout_zone", "display_aisles"],
+                status="online",
+                rtsp_url="demo_footage/centre_dl_06/cam_dl_01.mp4",
             ),
         ]
         db.add_all(cameras_data)
         db.commit()
 
-        print("[INFO] Setting up sanctioned infrastructure baselines...")
+        print("[INFO] Setting up sanctioned trade infrastructure baselines...")
         inventory_data = [
-            # Pune (Compliant)
-            SanctionedInventory(centre_id="centre_mh_01", zone="classroom", item="chair", expected_count=20),
-            SanctionedInventory(centre_id="centre_mh_01", zone="classroom", item="bench", expected_count=6),
-            SanctionedInventory(centre_id="centre_mh_01", zone="classroom", item="computer", expected_count=10),
-            # Varanasi (Attendance violation centre)
-            SanctionedInventory(centre_id="centre_up_02", zone="classroom", item="chair", expected_count=25),
-            SanctionedInventory(centre_id="centre_up_02", zone="classroom", item="bench", expected_count=8),
-            # Bengaluru (Equipment Deficit violation centre: expected 15 computers)
-            SanctionedInventory(centre_id="centre_ka_03", zone="computer_lab", item="computer", expected_count=15),
-            SanctionedInventory(centre_id="centre_ka_03", zone="computer_lab", item="chair", expected_count=15),
-            # Bhubaneswar (Camera offline centre)
-            SanctionedInventory(centre_id="centre_or_04", zone="workshop", item="workbench", expected_count=6),
-            SanctionedInventory(centre_id="centre_or_04", zone="workshop", item="chair", expected_count=12),
-            # Jaipur (Slight surplus)
-            SanctionedInventory(centre_id="centre_rj_05", zone="classroom", item="chair", expected_count=20),
-            SanctionedInventory(centre_id="centre_rj_05", zone="classroom", item="bench", expected_count=6),
+            # Pune (IT Lab: Compliant)
+            SanctionedInventory(centre_id="centre_mh_01", zone="computer_lab", item="computer", expected_count=15),
+            SanctionedInventory(centre_id="centre_mh_01", zone="computer_lab", item="chair", expected_count=15),
+            SanctionedInventory(centre_id="centre_mh_01", zone="computer_lab", item="fire_extinguisher", expected_count=1),
+            SanctionedInventory(centre_id="centre_mh_01", zone="computer_lab", item="first_aid_box", expected_count=1),
+            SanctionedInventory(centre_id="centre_mh_01", zone="computer_lab", item="safety_signage", expected_count=1),
+
+            # Varanasi (Sewing & Apparel)
+            SanctionedInventory(centre_id="centre_up_02", zone="stitching_line", item="sewing_machine", expected_count=12),
+            SanctionedInventory(centre_id="centre_up_02", zone="stitching_line", item="cutting_table", expected_count=2),
+            SanctionedInventory(centre_id="centre_up_02", zone="stitching_line", item="chair", expected_count=12),
+            SanctionedInventory(centre_id="centre_up_02", zone="stitching_line", item="fire_extinguisher", expected_count=1),
+            SanctionedInventory(centre_id="centre_up_02", zone="stitching_line", item="first_aid_box", expected_count=1),
+
+            # Bengaluru (Electrical & Electronics: Missing fire extinguisher)
+            SanctionedInventory(centre_id="centre_ka_03", zone="workstations", item="multimeter_bench", expected_count=8),
+            SanctionedInventory(centre_id="centre_ka_03", zone="workstations", item="soldering_station", expected_count=8),
+            SanctionedInventory(centre_id="centre_ka_03", zone="workstations", item="chair", expected_count=16),
+            SanctionedInventory(centre_id="centre_ka_03", zone="workstations", item="fire_extinguisher", expected_count=1),
+            SanctionedInventory(centre_id="centre_ka_03", zone="workstations", item="first_aid_box", expected_count=1),
+
+            # Bhubaneswar (Welding & Fabrication)
+            SanctionedInventory(centre_id="centre_or_04", zone="welding_bays", item="welding_machine", expected_count=6),
+            SanctionedInventory(centre_id="centre_or_04", zone="welding_bays", item="angle_grinder", expected_count=4),
+            SanctionedInventory(centre_id="centre_or_04", zone="welding_bays", item="workbench", expected_count=6),
+            SanctionedInventory(centre_id="centre_or_04", zone="welding_bays", item="fire_extinguisher", expected_count=2),
+            SanctionedInventory(centre_id="centre_or_04", zone="welding_bays", item="first_aid_box", expected_count=1),
+
+            # Jaipur (Beauty & Wellness: Capacity shortfall)
+            SanctionedInventory(centre_id="centre_rj_05", zone="styling_stations", item="styling_chair", expected_count=8),
+            SanctionedInventory(centre_id="centre_rj_05", zone="styling_stations", item="mirror_station", expected_count=8),
+            SanctionedInventory(centre_id="centre_rj_05", zone="styling_stations", item="facial_steamer", expected_count=4),
+            SanctionedInventory(centre_id="centre_rj_05", zone="styling_stations", item="fire_extinguisher", expected_count=1),
+            SanctionedInventory(centre_id="centre_rj_05", zone="styling_stations", item="safety_signage", expected_count=1),
+
+            # Delhi (Retail Assistant)
+            SanctionedInventory(centre_id="centre_dl_06", zone="checkout_zone", item="pos_terminal", expected_count=3),
+            SanctionedInventory(centre_id="centre_dl_06", zone="checkout_zone", item="billing_counter", expected_count=3),
+            SanctionedInventory(centre_id="centre_dl_06", zone="checkout_zone", item="display_rack", expected_count=6),
+            SanctionedInventory(centre_id="centre_dl_06", zone="checkout_zone", item="fire_extinguisher", expected_count=1),
         ]
         db.add_all(inventory_data)
         db.commit()
@@ -172,214 +226,316 @@ def seed():
             Batch(
                 id="batch_pune_01",
                 centre_id="centre_mh_01",
-                name="Solar Technician Level 4",
+                name="Cyber Security & Cloud Admin",
                 start_time="09:00",
                 end_time="13:00",
-                days=days_all,
-                zone="classroom",
-            ),
-            Batch(
-                id="batch_vns_01",
-                centre_id="centre_up_02",
-                name="Handloom & Textile Operator",
-                start_time="09:00",
-                end_time="13:00",
-                days=days_all,
-                zone="classroom",
-            ),
-            Batch(
-                id="batch_blr_01",
-                centre_id="centre_ka_03",
-                name="Junior Software Developer",
-                start_time="10:00",
-                end_time="14:00",
                 days=days_all,
                 zone="computer_lab",
             ),
             Batch(
-                id="batch_bbsr_01",
-                centre_id="centre_or_04",
-                name="Industrial Welder",
+                id="batch_vns_01",
+                centre_id="centre_up_02",
+                name="Apparel Pattern Maker & Sewing",
                 start_time="09:00",
                 end_time="13:00",
                 days=days_all,
-                zone="workshop",
+                zone="stitching_line",
+            ),
+            Batch(
+                id="batch_blr_01",
+                centre_id="centre_ka_03",
+                name="Industrial Electrician & Wireman",
+                start_time="10:00",
+                end_time="14:00",
+                days=days_all,
+                zone="workstations",
+            ),
+            Batch(
+                id="batch_bbsr_01",
+                centre_id="centre_or_04",
+                name="Shielded Metal Arc Welder (SMAW)",
+                start_time="09:00",
+                end_time="13:00",
+                days=days_all,
+                zone="welding_bays",
             ),
             Batch(
                 id="batch_jpr_01",
                 centre_id="centre_rj_05",
-                name="Electrician Assistant",
+                name="Assistant Beauty Therapist",
                 start_time="09:00",
                 end_time="13:00",
                 days=days_all,
-                zone="classroom",
+                zone="styling_stations",
+            ),
+            Batch(
+                id="batch_dl_01",
+                centre_id="centre_dl_06",
+                name="Retail Sales & POS Associate",
+                start_time="09:00",
+                end_time="13:00",
+                days=days_all,
+                zone="checkout_zone",
             ),
         ]
         db.add_all(batches_data)
         db.commit()
 
-        print("[INFO] Submitting 3 days of claimed attendance records...")
+        print("[INFO] Submitting claimed attendance records...")
         base_date = date.today() - timedelta(days=2)
         dates = [base_date + timedelta(days=i) for i in range(3)]
 
         attendance_data = [
-            # Pune: Claimed 20
-            AttendanceRecord(centre_id="centre_mh_01", batch_id="batch_pune_01", date=d, claimed_count=20)
+            # Pune: Claimed 15 (Matches observed)
+            AttendanceRecord(centre_id="centre_mh_01", batch_id="batch_pune_01", date=d, claimed_count=15)
             for d in dates
         ] + [
-            # Varanasi: Claimed 25 (Intentional attendance shortfall)
+            # Varanasi: Claimed 25 (Observed only 8 -> Severe mismatch)
             AttendanceRecord(centre_id="centre_up_02", batch_id="batch_vns_01", date=d, claimed_count=25)
             for d in dates
         ] + [
-            # Bengaluru: Claimed 14
+            # Bengaluru: Claimed 14 (Matches observed 14)
             AttendanceRecord(centre_id="centre_ka_03", batch_id="batch_blr_01", date=d, claimed_count=14)
             for d in dates
         ] + [
-            # Bhubaneswar: Claimed 12
+            # Bhubaneswar: Claimed 12 (Observed 11 on Day 1, offline days 2 & 3)
             AttendanceRecord(centre_id="centre_or_04", batch_id="batch_bbsr_01", date=d, claimed_count=12)
             for d in dates
         ] + [
-            # Jaipur: Claimed 20
+            # Jaipur: Claimed 20 (Capacity allows only 8 stations -> Deficit)
             AttendanceRecord(centre_id="centre_rj_05", batch_id="batch_jpr_01", date=d, claimed_count=20)
+            for d in dates
+        ] + [
+            # Delhi: Claimed 16 (Instructor absent)
+            AttendanceRecord(centre_id="centre_dl_06", batch_id="batch_dl_01", date=d, claimed_count=16)
             for d in dates
         ]
         db.add_all(attendance_data)
         db.commit()
 
-        print("[INFO] Simulating 3 days of detection events across centres...")
+        print("[INFO] Generating simulated multi-trade detection events...")
         events_to_add = []
 
         for d in dates:
-            # 6 sample times throughout the morning batch window (09:30 to 12:30)
             sample_hours = [(9, 30), (10, 0), (10, 30), (11, 0), (11, 30), (12, 0)]
 
             for h, m in sample_hours:
                 event_dt = datetime(d.year, d.month, d.day, h, m, 0, tzinfo=timezone.utc)
 
-                # 1. Pune: Compliant (19-20 persons, 20 chairs, 6 benches, 10 computers)
+                # 1. Pune (IT Lab: High Compliance Benchmark)
                 events_to_add.append(
                     DetectionEvent(
-                        camera_id="cam_mh_01",
-                        zone="classroom",
+                        camera_id="cam_01",
+                        zone="computer_lab",
                         timestamp=event_dt,
-                        person_count_raw=19,
-                        person_count_smoothed=19,
+                        person_count_raw=15,
+                        person_count_smoothed=15,
                         infrastructure=[
-                            {"item": "chair", "expected": 20, "detected": 20, "status": "MATCH"},
-                            {"item": "bench", "expected": 6, "detected": 6, "status": "MATCH"},
-                            {"item": "computer", "expected": 10, "detected": 10, "status": "MATCH"},
+                            {"item": "computer", "expected": 15, "detected": 15, "status": "MATCH", "operability": "operational"},
+                            {"item": "chair", "expected": 15, "detected": 15, "status": "MATCH", "operability": "operational"},
+                            {"item": "fire_extinguisher", "expected": 1, "detected": 1, "status": "MATCH"},
+                            {"item": "first_aid_box", "expected": 1, "detected": 1, "status": "MATCH"},
+                            {"item": "safety_signage", "expected": 1, "detected": 1, "status": "MATCH"},
                         ],
+                        compliance_metrics={
+                            "instructor_present": True,
+                            "ppe_compliance": {"compliance_pct": 100.0, "is_compliant": True, "total_trainees": 15},
+                            "safety_items": {"all_present": True, "missing_items": []},
+                            "signage_and_devices": {"all_visible": True, "missing_signage": []},
+                            "capacity_check": {"is_adequate": True, "available_workstations": 15, "batch_size": 15, "station_deficit": 0},
+                            "activity_state": "active",
+                        },
+                        is_reliable=True,
                     )
                 )
 
-                # 2. Varanasi: VIOLATION - Severe attendance mismatch (claimed 25, observed 8)
+                # 2. Varanasi (Sewing: Severe attendance shortfall - claimed 25 vs 8 present)
                 events_to_add.append(
                     DetectionEvent(
                         camera_id="cam_up_01",
-                        zone="classroom",
+                        zone="stitching_line",
                         timestamp=event_dt,
                         person_count_raw=8,
                         person_count_smoothed=8,
                         infrastructure=[
-                            {"item": "chair", "expected": 25, "detected": 25, "status": "MATCH"},
-                            {"item": "bench", "expected": 8, "detected": 8, "status": "MATCH"},
+                            {"item": "sewing_machine", "expected": 12, "detected": 12, "status": "MATCH", "operability": "operational"},
+                            {"item": "cutting_table", "expected": 2, "detected": 2, "status": "MATCH", "operability": "operational"},
+                            {"item": "chair", "expected": 12, "detected": 12, "status": "MATCH", "operability": "operational"},
+                            {"item": "fire_extinguisher", "expected": 1, "detected": 1, "status": "MATCH"},
+                            {"item": "first_aid_box", "expected": 1, "detected": 1, "status": "MATCH"},
                         ],
+                        compliance_metrics={
+                            "instructor_present": True,
+                            "ppe_compliance": {"compliance_pct": 80.0, "is_compliant": True, "total_trainees": 8},
+                            "safety_items": {"all_present": True, "missing_items": []},
+                            "signage_and_devices": {"all_visible": True, "missing_signage": []},
+                            "capacity_check": {"is_adequate": True, "available_workstations": 12, "batch_size": 25, "station_deficit": 0},
+                            "activity_state": "active",
+                        },
+                        is_reliable=True,
                     )
                 )
 
-                # 3. Bengaluru: VIOLATION - Equipment deficit (expected 15 computers, only 6 detected)
+                # 3. Bengaluru (Electrical: Missing fire extinguisher & deficit)
                 events_to_add.append(
                     DetectionEvent(
                         camera_id="cam_ka_01",
-                        zone="computer_lab",
+                        zone="workstations",
                         timestamp=event_dt,
                         person_count_raw=14,
                         person_count_smoothed=14,
                         infrastructure=[
-                            {"item": "computer", "expected": 15, "detected": 6, "status": "DEFICIT"},
-                            {"item": "chair", "expected": 15, "detected": 15, "status": "MATCH"},
+                            {"item": "multimeter_bench", "expected": 8, "detected": 5, "status": "DEFICIT", "operability": "operational"},
+                            {"item": "soldering_station", "expected": 8, "detected": 5, "status": "DEFICIT", "operability": "operational"},
+                            {"item": "chair", "expected": 16, "detected": 16, "status": "MATCH"},
+                            {"item": "first_aid_box", "expected": 1, "detected": 1, "status": "MATCH"},
+                            # fire_extinguisher intentionally omitted to trigger SAFETY_EQUIPMENT_MISSING
                         ],
+                        compliance_metrics={
+                            "instructor_present": True,
+                            "ppe_compliance": {"compliance_pct": 85.0, "is_compliant": True, "total_trainees": 14},
+                            "safety_items": {"all_present": False, "missing_items": ["fire_extinguisher"]},
+                            "signage_and_devices": {"all_visible": True, "missing_signage": []},
+                            "capacity_check": {"is_adequate": True, "available_workstations": 10, "batch_size": 14, "station_deficit": 0},
+                            "activity_state": "active",
+                        },
+                        is_reliable=True,
                     )
                 )
 
-                # 4. Jaipur: Compliant with minor chair surplus (22 detected vs 20 expected)
-                events_to_add.append(
-                    DetectionEvent(
-                        camera_id="cam_rj_01",
-                        zone="classroom",
-                        timestamp=event_dt,
-                        person_count_raw=19,
-                        person_count_smoothed=19,
-                        infrastructure=[
-                            {"item": "chair", "expected": 20, "detected": 22, "status": "SURPLUS"},
-                            {"item": "bench", "expected": 6, "detected": 6, "status": "MATCH"},
-                        ],
-                    )
-                )
-
-                # 5. Bhubaneswar: Only transmit during day 1; days 2 & 3 go offline / tampered
+                # 4. Bhubaneswar (Welding: Severe PPE Violation - 35% compliance & unpowered machine)
                 if d == dates[0] and (h, m) in sample_hours[:3]:
                     events_to_add.append(
                         DetectionEvent(
                             camera_id="cam_or_01",
-                            zone="workshop",
+                            zone="welding_bays",
                             timestamp=event_dt,
                             person_count_raw=11,
                             person_count_smoothed=11,
                             infrastructure=[
-                                {"item": "workbench", "expected": 6, "detected": 6, "status": "MATCH"},
-                                {"item": "chair", "expected": 12, "detected": 12, "status": "MATCH"},
+                                {"item": "welding_machine", "expected": 6, "detected": 6, "status": "MATCH", "operability": "non_operational", "signals": {"power_led": False}},
+                                {"item": "workbench", "expected": 6, "detected": 6, "status": "MATCH", "operability": "operational"},
+                                {"item": "fire_extinguisher", "expected": 2, "detected": 2, "status": "MATCH"},
+                                {"item": "first_aid_box", "expected": 1, "detected": 1, "status": "MATCH"},
                             ],
+                            compliance_metrics={
+                                "instructor_present": True,
+                                "ppe_compliance": {
+                                    "compliance_pct": 35.0,
+                                    "is_compliant": False,
+                                    "total_trainees": 11,
+                                    "detected_items_breakdown": {
+                                        "welding_helmet": {"detected": 3, "required": 11},
+                                        "leather_gloves": {"detected": 4, "required": 11},
+                                    },
+                                },
+                                "safety_items": {"all_present": True, "missing_items": []},
+                                "signage_and_devices": {"all_visible": True, "missing_signage": []},
+                                "capacity_check": {"is_adequate": True, "available_workstations": 6, "batch_size": 12, "station_deficit": 0},
+                                "activity_state": "active",
+                            },
+                            is_reliable=True,
                         )
                     )
+
+                # 5. Jaipur (Beauty: Workstation capacity deficit - 8 stations vs 20 claimed)
+                events_to_add.append(
+                    DetectionEvent(
+                        camera_id="cam_rj_01",
+                        zone="styling_stations",
+                        timestamp=event_dt,
+                        person_count_raw=19,
+                        person_count_smoothed=19,
+                        infrastructure=[
+                            {"item": "styling_chair", "expected": 8, "detected": 8, "status": "MATCH", "operability": "operational"},
+                            {"item": "mirror_station", "expected": 8, "detected": 8, "status": "MATCH", "operability": "operational"},
+                            {"item": "facial_steamer", "expected": 4, "detected": 4, "status": "MATCH", "operability": "operational"},
+                            {"item": "fire_extinguisher", "expected": 1, "detected": 1, "status": "MATCH"},
+                            # safety_signage missing
+                        ],
+                        compliance_metrics={
+                            "instructor_present": True,
+                            "ppe_compliance": {"compliance_pct": 82.0, "is_compliant": True, "total_trainees": 19},
+                            "safety_items": {"all_present": True, "missing_items": []},
+                            "signage_and_devices": {"all_visible": False, "missing_signage": ["safety_signage"]},
+                            "capacity_check": {
+                                "is_adequate": False,
+                                "available_workstations": 8,
+                                "batch_size": 20,
+                                "station_deficit": 12,
+                            },
+                            "activity_state": "active",
+                        },
+                        is_reliable=True,
+                    )
+                )
+
+                # 6. Delhi (Retail: Instructor absent from podium during active batch)
+                events_to_add.append(
+                    DetectionEvent(
+                        camera_id="cam_dl_01",
+                        zone="checkout_zone",
+                        timestamp=event_dt,
+                        person_count_raw=15,
+                        person_count_smoothed=15,
+                        infrastructure=[
+                            {"item": "pos_terminal", "expected": 3, "detected": 3, "status": "MATCH", "operability": "operational"},
+                            {"item": "billing_counter", "expected": 3, "detected": 3, "status": "MATCH", "operability": "operational"},
+                            {"item": "display_rack", "expected": 6, "detected": 6, "status": "MATCH"},
+                            {"item": "fire_extinguisher", "expected": 1, "detected": 1, "status": "MATCH"},
+                        ],
+                        compliance_metrics={
+                            "instructor_present": False,  # Triggers INSTRUCTOR_ABSENT
+                            "ppe_compliance": {"compliance_pct": 100.0, "is_compliant": True, "total_trainees": 15},
+                            "safety_items": {"all_present": True, "missing_items": []},
+                            "signage_and_devices": {"all_visible": True, "missing_signage": []},
+                            "capacity_check": {"is_adequate": True, "available_workstations": 3, "batch_size": 16, "station_deficit": 0},
+                            "activity_state": "active",
+                        },
+                        is_reliable=True,
+                    )
+                )
 
         db.add_all(events_to_add)
         db.commit()
 
-        # Update camera last seen timestamps
-        cam_mh = db.query(Camera).filter(Camera.id == "cam_mh_01").first()
-        cam_mh.last_seen_at = utcnow()
-        cam_mh.status = "online"
+        # Update camera statuses
+        for c_id in ["cam_01", "cam_mh_01", "cam_up_01", "cam_ka_01", "cam_rj_01", "cam_dl_01"]:
+            c = db.query(Camera).filter(Camera.id == c_id).first()
+            if c:
+                c.last_seen_at = utcnow()
+                c.status = "online"
 
-        cam_up = db.query(Camera).filter(Camera.id == "cam_up_01").first()
-        cam_up.last_seen_at = utcnow()
-        cam_up.status = "online"
-
-        cam_ka = db.query(Camera).filter(Camera.id == "cam_ka_01").first()
-        cam_ka.last_seen_at = utcnow()
-        cam_ka.status = "online"
-
-        cam_rj = db.query(Camera).filter(Camera.id == "cam_rj_01").first()
-        cam_rj.last_seen_at = utcnow()
-        cam_rj.status = "online"
-
-        # Bhubaneswar camera was last seen 2 days ago
         cam_or = db.query(Camera).filter(Camera.id == "cam_or_01").first()
-        cam_or.last_seen_at = utcnow() - timedelta(days=2)
-        cam_or.status = "offline"
+        if cam_or:
+            cam_or.last_seen_at = utcnow() - timedelta(days=2)
+            cam_or.status = "offline"
 
         db.commit()
 
-        print("[INFO] Evaluating compliance rules to generate audit alerts...")
-        # Evaluate rules across seeded data
+        print("[INFO] Evaluating comprehensive compliance rules across all trades...")
         for ev in events_to_add:
             cam = db.query(Camera).filter(Camera.id == ev.camera_id).first()
-            RulesEngine.evaluate_attendance_mismatch(db, cam.centre_id, cam, ev.zone, ev.timestamp)
-            RulesEngine.evaluate_infrastructure_discrepancies(db, cam.centre_id, cam, ev.zone, ev.timestamp, ev.infrastructure)
+            if cam:
+                RulesEngine.evaluate_attendance_mismatch(db, cam.centre_id, cam, ev.zone, ev.timestamp)
+                RulesEngine.evaluate_infrastructure_discrepancies(db, cam.centre_id, cam, ev.zone, ev.timestamp, ev.infrastructure)
+                RulesEngine.evaluate_apparent_operability(db, cam.centre_id, cam, ev.zone, ev.timestamp, ev.infrastructure)
+                RulesEngine.evaluate_trade_compliance_checks(db, cam.centre_id, cam, ev.zone, ev.timestamp, ev)
 
         # Trigger camera offline check for Bhubaneswar
         fake_batch_time = datetime.now(timezone.utc).replace(hour=10, minute=30)
         RulesEngine.check_camera_offline(db, cam_or, fake_batch_time)
 
         alerts_count = db.query(Alert).count()
-        print(f"[SUCCESS] Database seeded successfully!")
-        print(f"  • Centres created      : {len(centres_data)}")
-        print(f"  • Cameras configured   : {len(cameras_data)}")
-        print(f"  • Inventory items      : {len(inventory_data)}")
-        print(f"  • Batches scheduled    : {len(batches_data)}")
-        print(f"  • Attendance submitted : {len(attendance_data)}")
-        print(f"  • Detection events     : {len(events_to_add)}")
-        print(f"  • Compliance alerts    : {alerts_count}")
+        print(f"[SUCCESS] Multi-Trade Database Seeded Successfully!")
+        print(f"  • Trade Profiles seeded : {tp_count}")
+        print(f"  • Centres configured    : {len(centres_data)}")
+        print(f"  • Cameras configured    : {len(cameras_data)}")
+        print(f"  • Inventory items       : {len(inventory_data)}")
+        print(f"  • Batches scheduled     : {len(batches_data)}")
+        print(f"  • Attendance records    : {len(attendance_data)}")
+        print(f"  • Detection events      : {len(events_to_add)}")
+        print(f"  • Active compliance alerts : {alerts_count}")
 
     finally:
         db.close()

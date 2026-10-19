@@ -36,10 +36,20 @@ class Settings(BaseSettings):
     # Operability assessment: flag NON_FUNCTIONAL_EQUIPMENT if item is non-operational for M samples
     operability_consecutive_samples: int = 3
 
+    # Additional Compliance Checks Thresholds
+    instructor_consecutive_windows: int = 2
+    ppe_threshold_ratio: float = 0.75
+    ppe_consecutive_windows: int = 2
+    safety_consecutive_samples: int = 2
+    signage_consecutive_samples: int = 3
+    capacity_deficit_ratio: float = 0.90
+    activity_idle_consecutive_samples: int = 3
+
     # Compliance score weights (summing to 1.0)
     compliance_weight_attendance: float = 0.45
     compliance_weight_infrastructure: float = 0.35
     compliance_weight_camera: float = 0.20
+    compliance_weight_compliance_checks: float = 0.10
 
     # Privacy & Data Retention: delete raw events older than N days (default: 90 days)
     data_retention_days: int = 90

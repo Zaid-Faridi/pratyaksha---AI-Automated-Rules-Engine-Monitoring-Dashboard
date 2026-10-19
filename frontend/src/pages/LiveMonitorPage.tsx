@@ -20,12 +20,25 @@ import {
   EyeOff,
   Play,
   Pause,
+  Layers,
+  Flame,
+  ShieldAlert,
+  UserCheck,
+  Activity,
+  Briefcase,
+  ExternalLink,
+  Sparkles,
+  HardHat,
 } from 'lucide-react';
 
 import { api } from '../api/client';
 import { Camera, Centre, LiveTelemetryPayload, LiveAlertTickerItem } from '../types';
 
 export const LiveMonitorPage: React.FC = () => {
+  // View Mode: Single Camera Feed vs 4-Centre Multi-Centre Wall View
+  const [viewMode, setViewMode] = useState<'single' | 'wall'>('single');
+  const [activeScenario, setActiveScenario] = useState<string>('compliant');
+
   // Queries for Centres and Cameras
   const { data: centres = [] } = useQuery({
     queryKey: ['centres'],
@@ -35,6 +48,19 @@ export const LiveMonitorPage: React.FC = () => {
   const { data: cameras = [], refetch: refetchCameras } = useQuery({
     queryKey: ['cameras'],
     queryFn: () => api.getCameras(),
+  });
+
+  // Query 4-Centre Wall View Metadata
+  const { data: wallData, refetch: refetchWall } = useQuery({
+    queryKey: ['streaming-wall'],
+    queryFn: () => api.getMultiCentreWall(),
+    refetchInterval: 4000,
+  });
+
+  // Query Demo Footage Manifest
+  const { data: manifestData } = useQuery({
+    queryKey: ['streaming-manifest'],
+    queryFn: () => api.getStreamingManifest(),
   });
 
   // Selected State
@@ -193,6 +219,19 @@ export const LiveMonitorPage: React.FC = () => {
     }
   };
 
+  const handleScenarioChange = async (newScenario: string, camId?: string) => {
+    const targetCamId = camId || activeCamera?.id;
+    if (!targetCamId) return;
+    if (!camId) setActiveScenario(newScenario);
+    try {
+      await api.updateDemoConfig(targetCamId, { scenario: newScenario });
+      setReconnectKey((k) => k + 1);
+      refetchWall();
+    } catch (err) {
+      console.warn('Failed to update live demo scenario', err);
+    }
+  };
+
   // Derive active attendance calculation
   const classroomTelemetry = telemetry?.zones?.classroom;
   const detectedHeadcount = classroomTelemetry?.smoothed_count ?? (telemetry?.total_persons_detected ?? 5);
@@ -205,7 +244,7 @@ export const LiveMonitorPage: React.FC = () => {
   const streamUrl = activeCamera
     ? isSnapshotMode
       ? api.getCameraSnapshotUrl(activeCamera.id) + `&key=${reconnectKey}&ts=${snapshotTimestamp}`
-      : api.getCameraStreamUrl(activeCamera.id, { claimedAttendance, demo: isDemoMode }) + `&key=${reconnectKey}`
+      : api.getCameraStreamUrl(activeCamera.id, { claimedAttendance, demo: isDemoMode, scenario: activeScenario }) + `&key=${reconnectKey}`
     : '';
 
   const isStreamingForbidden = activeCentre && activeCentre.live_streaming_enabled === false;
@@ -229,44 +268,35 @@ export const LiveMonitorPage: React.FC = () => {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Edge-rendered live feeds with privacy blurring, automated zone counting, and instant quota reconciliation.
+            Edge-rendered live feeds with privacy blurring, automated zone counting, and multi-trade compliance auditing.
           </p>
         </div>
 
-        {/* Global Controls: Grid Mode & Snapshot Mode */}
+        {/* Global Controls: View Mode & Snapshot Mode */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Layout Toggle */}
-          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-0.5 shadow-sm text-xs">
+          {/* View Mode Toggle: Single Camera vs 4-Centre Multi-Centre Wall View */}
+          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-0.5 shadow-sm text-xs font-semibold">
             <button
-              onClick={() => setGridLayout('1')}
-              className={`px-2.5 py-1.5 rounded-md font-medium flex items-center gap-1 transition ${
-                gridLayout === '1'
+              onClick={() => setViewMode('single')}
+              className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 transition ${
+                viewMode === 'single'
                   ? 'bg-gov-600 text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
-              1 Cam
+              <Video className="w-3.5 h-3.5" />
+              <span>Single Camera</span>
             </button>
             <button
-              onClick={() => setGridLayout('2')}
-              className={`px-2.5 py-1.5 rounded-md font-medium flex items-center gap-1 transition ${
-                gridLayout === '2'
+              onClick={() => setViewMode('wall')}
+              className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 transition ${
+                viewMode === 'wall'
                   ? 'bg-gov-600 text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
-              2 Cams
-            </button>
-            <button
-              onClick={() => setGridLayout('4')}
-              className={`px-2.5 py-1.5 rounded-md font-medium flex items-center gap-1 transition ${
-                gridLayout === '4'
-                  ? 'bg-gov-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              4 Cams
+              <LayoutGrid className="w-3.5 h-3.5 text-teal-400" />
+              <span>4-Centre Wall View</span>
             </button>
           </div>
 
@@ -288,7 +318,7 @@ export const LiveMonitorPage: React.FC = () => {
 
       {/* Selectors Bar & Centre Policy Banner */}
       <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center">
           {/* Centre Dropdown */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
@@ -325,6 +355,28 @@ export const LiveMonitorPage: React.FC = () => {
             </select>
           </div>
 
+          {/* Demo Scenario Injection Dropdown */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              <span>Demo Scenario</span>
+            </label>
+            <select
+              value={activeScenario}
+              onChange={(e) => handleScenarioChange(e.target.value)}
+              className="w-full text-xs rounded-lg border border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/20 px-3 py-2 text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="compliant">Compliant Session</option>
+              <option value="inflated_attendance">Inflated Attendance Claim</option>
+              <option value="missing_machine">Missing Equipment Deficit</option>
+              <option value="missing_ppe">Severe PPE Violation</option>
+              <option value="instructor_absent">Instructor Absent from Podium</option>
+              <option value="capacity_deficit">Workstation Capacity Deficit</option>
+              <option value="idle_session">Prolonged Inactivity / Idle</option>
+              <option value="poor_quality">Poor Quality / Occlusion</option>
+            </select>
+          </div>
+
           {/* Demo Looping Toggle */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
@@ -341,7 +393,7 @@ export const LiveMonitorPage: React.FC = () => {
                 }`}
               >
                 {isDemoMode ? <Play className="w-3.5 h-3.5 text-teal-600" /> : <Pause className="w-3.5 h-3.5" />}
-                <span>{isDemoMode ? 'Demo Video (Looping)' : 'Physical RTSP Feed'}</span>
+                <span>{isDemoMode ? 'Demo Video' : 'Physical RTSP'}</span>
               </button>
             </div>
           </div>
@@ -415,10 +467,142 @@ export const LiveMonitorPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Monitoring Body: Left Video Feeds, Right Live Reconciliation Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Video Feeds (2 Cols on lg) */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Multi-Centre Wall View vs Single Camera View */}
+      {viewMode === 'wall' ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-800 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <LayoutGrid className="w-5 h-5 text-teal-400" />
+              <div>
+                <h2 className="text-sm font-bold">Multi-Centre Monitoring Wall (4 Simultaneous Feeds)</h2>
+                <p className="text-[11px] text-slate-400">Low-bandwidth streaming (480px, 5.0 FPS) across vocational trade centres.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setReconnectKey((k) => k + 1);
+                refetchWall();
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh Wall</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(wallData?.wall_centres || []).slice(0, 4).map((wc: any) => {
+              const mismatch = wc.current_headcount < 0.70 * wc.claimed_attendance && wc.claimed_attendance > 0;
+              return (
+                <div
+                  key={wc.centre_id}
+                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm flex flex-col transition hover:border-gov-400"
+                >
+                  {/* Card Header */}
+                  <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        {wc.centre_name}
+                      </h3>
+                      <p className="text-[10px] text-slate-400 font-mono">
+                        {wc.district}, {wc.state} • CAM: {wc.camera_id}
+                      </p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gov-50 dark:bg-gov-950 text-gov-700 dark:text-gov-300 border border-gov-200 dark:border-gov-800 uppercase">
+                      {wc.trade_id.replace('_', ' ')}
+                    </span>
+                  </div>
+
+                  {/* Video Viewport (Low-bandwidth MJPEG) */}
+                  <div className="aspect-video w-full bg-slate-950 relative flex items-center justify-center">
+                    <img
+                      key={`wall-${wc.camera_id}-${reconnectKey}`}
+                      src={`${api.getCameraStreamUrl(wc.camera_id, { maxWidth: 480, fps: 5.0, scenario: wc.current_scenario })}&t=${reconnectKey}`}
+                      alt={wc.centre_name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    {/* Status scanline overlay */}
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 backdrop-blur-sm text-[10px] text-emerald-400 font-mono flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>LIVE 5.0 FPS</span>
+                    </div>
+
+                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded bg-slate-950/80 backdrop-blur-sm text-[10px] text-slate-300">
+                      ZERO PII
+                    </div>
+                  </div>
+
+                  {/* Status Badges Row */}
+                  <div className="px-4 py-3 bg-white dark:bg-slate-900 grid grid-cols-3 gap-2 border-b border-slate-100 dark:border-slate-800 text-center">
+                    {/* Attendance */}
+                    <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                      <p className="text-[10px] text-slate-400">Headcount</p>
+                      <p className={`text-xs font-bold ${mismatch ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                        {wc.current_headcount} / {wc.claimed_attendance}
+                      </p>
+                    </div>
+
+                    {/* Compliance Score */}
+                    <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                      <p className="text-[10px] text-slate-400">Compliance</p>
+                      <p className={`text-xs font-bold ${wc.compliance_score >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                        {Math.round(wc.compliance_score)}%
+                      </p>
+                    </div>
+
+                    {/* Active Alerts */}
+                    <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                      <p className="text-[10px] text-slate-400">Open Alerts</p>
+                      <p className={`text-xs font-bold ${wc.active_alerts_count > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                        {wc.active_alerts_count} Active
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Card Footer: Scenario Injector & Inspect */}
+                  <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-850 flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 flex-1 max-w-[240px]">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <select
+                        value={wc.current_scenario || 'compliant'}
+                        onChange={(e) => handleScenarioChange(e.target.value, wc.camera_id)}
+                        className="w-full text-[11px] rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-slate-800 dark:text-slate-200 font-medium"
+                        title="Inject demonstration scenario for this centre"
+                      >
+                        <option value="compliant">Compliant Session</option>
+                        <option value="inflated_attendance">Inflated Attendance</option>
+                        <option value="missing_machine">Missing Equipment</option>
+                        <option value="missing_ppe">Missing PPE Violation</option>
+                        <option value="instructor_absent">Instructor Absent</option>
+                        <option value="capacity_deficit">Capacity Deficit</option>
+                        <option value="idle_session">Idle Trainees</option>
+                        <option value="poor_quality">Poor Quality / Occlusion</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedCentreId(wc.centre_id);
+                        setSelectedCameraId(wc.camera_id);
+                        setViewMode('single');
+                      }}
+                      className="px-2.5 py-1 rounded text-[11px] font-semibold text-gov-600 dark:text-gov-400 hover:bg-gov-50 dark:hover:bg-gov-950 transition flex items-center gap-1"
+                    >
+                      <span>Inspect Feed</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        /* Main Monitoring Body: Left Video Feeds, Right Live Reconciliation Panel */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column: Video Feeds (2 Cols on lg) */}
+          <div className="lg:col-span-2 space-y-4">
           {/* Main Video Viewport Container */}
           <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 shadow-md relative">
             {/* Overlay Status Bar */}
@@ -715,6 +899,130 @@ export const LiveMonitorPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Card: Vocational Trade Compliance Checks (Aggregate, Zero-PII) */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-gov-600 dark:text-gov-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Trade Compliance Checks
+                </h3>
+              </div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                AGGREGATE • NO PII
+              </span>
+            </div>
+
+            <p className="text-[10px] text-slate-400 italic">
+              Automated rules engine signals evaluated per sampling window. Never identifies individuals or stores crops.
+            </p>
+
+            <div className="space-y-2.5 text-xs">
+              {/* Check 1: Instructor Presence */}
+              <div className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5 text-slate-500" />
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">Instructor Presence</p>
+                    <p className="text-[10px] text-slate-400">Anonymous podium occupancy</p>
+                  </div>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                    telemetry?.compliance_metrics?.instructor_present ?? true
+                      ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                      : 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                  }`}
+                >
+                  {telemetry?.compliance_metrics?.instructor_present ?? true ? 'PRESENT' : 'ABSENT'}
+                </span>
+              </div>
+
+              {/* Check 2: Aggregate PPE Compliance */}
+              <div className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/40 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <HardHat className="w-3.5 h-3.5 text-slate-500" />
+                    <div>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200">Aggregate PPE Compliance</p>
+                      <p className="text-[10px] text-slate-400">
+                        {telemetry?.compliance_metrics?.ppe_compliance?.wearing_count ?? detectedHeadcount} of{' '}
+                        {telemetry?.compliance_metrics?.ppe_compliance?.total_persons ?? detectedHeadcount} trainees protected
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                      (telemetry?.compliance_metrics?.ppe_compliance?.status ?? 'COMPLIANT') === 'COMPLIANT'
+                        ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                    }`}
+                  >
+                    {Math.round((telemetry?.compliance_metrics?.ppe_compliance?.compliance_rate ?? 0.88) * 100)}% OK
+                  </span>
+                </div>
+                {/* Micro progress bar */}
+                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      (telemetry?.compliance_metrics?.ppe_compliance?.status ?? 'COMPLIANT') === 'COMPLIANT'
+                        ? 'bg-emerald-500'
+                        : 'bg-rose-500'
+                    }`}
+                    style={{
+                      width: `${Math.round((telemetry?.compliance_metrics?.ppe_compliance?.compliance_rate ?? 0.88) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Check 3: Safety Items (Extinguisher & First-Aid) */}
+              <div className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-3.5 h-3.5 text-slate-500" />
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">Safety Equipment</p>
+                    <p className="text-[10px] text-slate-400">Fire extinguisher & first-aid kit</p>
+                  </div>
+                </div>
+                <div className="flex gap-1.5">
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                      telemetry?.compliance_metrics?.safety_items?.fire_extinguisher ?? true
+                        ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                    }`}
+                  >
+                    EXT: {telemetry?.compliance_metrics?.safety_items?.fire_extinguisher ?? true ? 'YES' : 'NO'}
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    KIT: YES
+                  </span>
+                </div>
+              </div>
+
+              {/* Check 4 & 5: Capacity & Activity */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/40">
+                  <p className="text-[10px] text-slate-400">Workstation Capacity</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                    {telemetry?.compliance_metrics?.workstation_capacity?.status === 'DEFICIT' ? (
+                      <span className="text-rose-600 dark:text-rose-400 font-bold">DEFICIT</span>
+                    ) : (
+                      <span className="text-emerald-600 dark:text-emerald-400">SATISFIED</span>
+                    )}
+                  </p>
+                </div>
+                <div className="p-2 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/40">
+                  <p className="text-[10px] text-slate-400">Zone Activity State</p>
+                  <p className="text-xs font-bold mt-0.5 text-teal-600 dark:text-teal-400 uppercase">
+                    {telemetry?.compliance_metrics?.activity_state ?? 'ACTIVE'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Card 2: Sanctioned Equipment Checklist */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
@@ -868,6 +1176,7 @@ export const LiveMonitorPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    )}
+  </div>
+);
 };

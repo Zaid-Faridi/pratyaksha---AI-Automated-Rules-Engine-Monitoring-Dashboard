@@ -7,15 +7,22 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from app.config import settings
 
+from sqlalchemy.pool import NullPool
+
 # Configure SQLite vs PostgreSQL connection arguments
 connect_args = {}
+engine_kwargs = {"echo": False}
 if settings.database_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
+    engine_kwargs["poolclass"] = NullPool
+else:
+    engine_kwargs["pool_size"] = 20
+    engine_kwargs["max_overflow"] = 40
 
 engine = create_engine(
     settings.database_url,
     connect_args=connect_args,
-    echo=False,
+    **engine_kwargs,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -59,6 +66,18 @@ def init_db() -> None:
             pass
         try:
             conn.execute(text("ALTER TABLE detection_events ADD COLUMN quality_metrics JSON DEFAULT '{}'"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE detection_events ADD COLUMN compliance_metrics JSON DEFAULT '{}'"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE centres ADD COLUMN trade_id VARCHAR(64)"))
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE centres ADD COLUMN trade_overrides JSON DEFAULT '{}'"))
         except Exception:
             pass
         try:

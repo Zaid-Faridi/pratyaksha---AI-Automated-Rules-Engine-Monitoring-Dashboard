@@ -38,6 +38,7 @@ class DetectionEventCreate(BaseModel):
     infrastructure: List[InfrastructureItem] = Field(default_factory=list)
     is_reliable: Optional[bool] = True
     quality_metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    compliance_metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     def normalize_person_count(cls, data: Any) -> Any:
@@ -65,6 +66,7 @@ class DetectionEventOut(BaseModel):
     infrastructure: List[Dict[str, Any]]
     is_reliable: bool = True
     quality_metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    compliance_metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -79,6 +81,44 @@ class CameraHeartbeatPayload(BaseModel):
 
 
 
+# --- Trade Profile Schemas ---
+
+class TradeProfileBase(BaseModel):
+    name: str
+    category: str
+    description: Optional[str] = None
+    sanctioned_equipment: List[Dict[str, Any]] = Field(default_factory=list)
+    required_ppe: List[Any] = Field(default_factory=list)
+    safety_items: List[Any] = Field(default_factory=list)
+    mandatory_signage: List[Any] = Field(default_factory=list)
+    workstation_capacity_rule: Dict[str, Any] = Field(default_factory=dict)
+    compliance_checks: Dict[str, Any] = Field(default_factory=dict)
+
+
+class TradeProfileCreate(TradeProfileBase):
+    id: str
+
+
+class TradeProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+    sanctioned_equipment: Optional[List[Dict[str, Any]]] = None
+    required_ppe: Optional[List[Dict[str, Any]]] = None
+    safety_items: Optional[List[Any]] = None
+    mandatory_signage: Optional[List[Any]] = None
+    workstation_capacity_rule: Optional[Dict[str, Any]] = None
+    compliance_checks: Optional[Dict[str, Any]] = None
+
+
+class TradeProfileOut(TradeProfileBase):
+    id: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # --- Centre Schemas ---
 
 class CentreBase(BaseModel):
@@ -88,6 +128,8 @@ class CentreBase(BaseModel):
     lat: float
     lng: float
     scheme: str = "PMKVY 4.0"
+    trade_id: Optional[str] = None
+    trade_overrides: Optional[Dict[str, Any]] = Field(default_factory=dict)
     live_streaming_enabled: bool = True
 
 
@@ -102,12 +144,15 @@ class CentreUpdate(BaseModel):
     lat: Optional[float] = None
     lng: Optional[float] = None
     scheme: Optional[str] = None
+    trade_id: Optional[str] = None
+    trade_overrides: Optional[Dict[str, Any]] = None
     live_streaming_enabled: Optional[bool] = None
 
 
 class CentreOut(CentreBase):
     id: str
     created_at: datetime
+    trade_profile: Optional[TradeProfileOut] = None
 
     model_config = ConfigDict(from_attributes=True)
 

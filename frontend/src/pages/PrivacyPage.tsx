@@ -123,6 +123,43 @@ export const PrivacyPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Multi-Trade Aggregate Compliance Safeguards */}
+      <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 text-gov-700 dark:text-gov-300 font-bold text-base">
+          <ShieldCheck className="w-5 h-5 flex-shrink-0 text-teal-600 dark:text-teal-400" />
+          <h3>Multi-Trade Automated Checks: Zero Individual Identification Guarantee</h3>
+        </div>
+        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+          The six automated compliance checks across welding, apparel, IT labs, electrical, beauty & wellness, and retail are computed strictly as macroscopic zone metrics:
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-1">
+            <h5 className="font-bold text-slate-800 dark:text-slate-200">1. Instructor Presence (Podium Zone)</h5>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+              Detected strictly as an anonymous binary presence signal within the demonstration ROI. Never matched against trainer photo IDs or credentials.
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-1">
+            <h5 className="font-bold text-slate-800 dark:text-slate-200">2. PPE Compliance (Aggregate Counts)</h5>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+              Reported strictly as a zone-level ratio (e.g., 8/10 wearing helmets = 80%). Never linked to named persons, and human crops are never saved.
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-1">
+            <h5 className="font-bold text-slate-800 dark:text-slate-200">3. Safety Items & Mandatory Signage</h5>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+              Optical verification of fire extinguishers, first-aid boxes, and PMKVY entrance banners. Inanimate facility compliance without worker tracking.
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-1">
+            <h5 className="font-bold text-slate-800 dark:text-slate-200">4. Capacity Ratio & Zone Activity State</h5>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+              Evaluates workstation quotas against batch sizes and categorizes room activity (Active, Idle, Empty) without individual productivity surveillance.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* DPDP Compliance Notice */}
       <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-900/60 text-xs text-slate-600 dark:text-slate-400 flex items-start gap-3">
         <FileText className="w-5 h-5 text-gov-600 flex-shrink-0 mt-0.5" />

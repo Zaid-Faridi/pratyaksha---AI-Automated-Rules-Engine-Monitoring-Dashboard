@@ -1,0 +1,429 @@
+# ==============================================================================
+# Pratyaksha: Standard Vocational Trade Profiles & Compliance Standards
+# Aligned with MSDE / NCVT / PMKVY 4.0 Sector Skill Councils (SSC)
+# ==============================================================================
+
+trade_profiles:
+  welding:
+    id: "welding"
+    name: "Welding & Fabrication"
+    category: "Capital Goods & Manufacturing"
+    description: "Industrial arc and gas welding workshop with heavy machinery, grinding bays, and hot-work safety standards."
+    sanctioned_equipment:
+      - item: "welding_machine"
+        expected_per_batch: 6
+        detector_prompts: ["welding machine", "arc welder", "inverter welding unit"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+          require_person_proximity: true
+          max_distance_px: 160
+      - item: "angle_grinder"
+        expected_per_batch: 4
+        detector_prompts: ["angle grinder", "grinding tool"]
+        operability:
+          check_type: "machine"
+          power_indicator: false
+          require_person_proximity: true
+          max_distance_px: 140
+      - item: "workbench"
+        expected_per_batch: 6
+        detector_prompts: ["metal workbench", "heavy duty table", "welding table"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+          max_clutter_overlap: 0.35
+      - item: "exhaust_hood"
+        expected_per_batch: 2
+        detector_prompts: ["fume extractor", "exhaust hood", "ventilation duct"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+      - item: "toolbox"
+        expected_per_batch: 6
+        detector_prompts: ["metal toolbox", "tool kit"]
+        operability:
+          check_type: "bench"
+    required_ppe:
+      - name: "welding_helmet"
+        label: "Welding Helmet / Shield"
+        required: true
+        detector_prompts: ["welding helmet", "face shield", "dark safety visor"]
+        min_ratio: 0.80
+      - name: "leather_gloves"
+        label: "Heat-Resistant Welding Gloves"
+        required: true
+        detector_prompts: ["heavy work gloves", "leather gloves"]
+        min_ratio: 0.80
+      - name: "leather_apron"
+        label: "Leather Welding Apron"
+        required: true
+        detector_prompts: ["leather apron", "heavy work apron"]
+        min_ratio: 0.70
+    safety_items:
+      - item: "fire_extinguisher"
+        label: "CO2 / Dry Powder Fire Extinguisher"
+        required: true
+        detector_prompts: ["fire extinguisher", "red extinguisher cylinder"]
+      - item: "first_aid_box"
+        label: "Industrial Burn & Trauma First-Aid Kit"
+        required: true
+        detector_prompts: ["first aid box", "white medical emergency kit"]
+    mandatory_signage:
+      - item: "hot_work_warning"
+        label: "Hot Work & Eye Hazard Warning Signage"
+        detector_prompts: ["hazard warning sign", "safety caution poster"]
+      - item: "biometric_device"
+        label: "AEPS / Biometric Attendance Terminal"
+        detector_prompts: ["biometric attendance device", "wall attendance scanner"]
+    workstation_capacity_rule:
+      primary_item: "welding_machine"
+      ratio_per_trainee: 1.0  # 1 welding machine per 1 trainee in practical bay
+      minimum_seating_ratio: 0.5
+    compliance_checks:
+      instructor_presence: true
+      ppe_compliance: true
+      safety_items: true
+      signage: true
+      capacity: true
+      activity_state: true
+
+  sewing:
+    id: "sewing"
+    name: "Sewing & Apparel Making"
+    category: "Apparel, Made-Ups & Home Furnishing"
+    description: "Industrial garment manufacturing and pattern tailoring line with high-speed motorized lockstitch sewing machines."
+    sanctioned_equipment:
+      - item: "sewing_machine"
+        expected_per_batch: 12
+        detector_prompts: ["industrial sewing machine", "lockstitch machine", "tailoring machine"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+          require_person_proximity: true
+          max_distance_px: 120
+      - item: "cutting_table"
+        expected_per_batch: 2
+        detector_prompts: ["fabric cutting table", "large drafting table", "workbench"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+          max_clutter_overlap: 0.40
+      - item: "ironing_press"
+        expected_per_batch: 2
+        detector_prompts: ["steam iron press", "ironing station"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+      - item: "chair"
+        expected_per_batch: 12
+        detector_prompts: ["sewing stool", "work chair", "chair"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+    required_ppe:
+      - name: "apron"
+        label: "Work Apron / Lab Coat"
+        required: true
+        detector_prompts: ["fabric apron", "work coat"]
+        min_ratio: 0.70
+      - name: "finger_guard"
+        label: "Needle Finger Guard"
+        required: false
+        detector_prompts: ["safety needle guard"]
+        min_ratio: 0.60
+    safety_items:
+      - item: "fire_extinguisher"
+        label: "ABC Dry Chemical Fire Extinguisher"
+        required: true
+        detector_prompts: ["fire extinguisher"]
+      - item: "first_aid_box"
+        label: "Puncture & Cut First-Aid Kit"
+        required: true
+        detector_prompts: ["first aid box"]
+    mandatory_signage:
+      - item: "needle_safety_poster"
+        label: "Machine Safety & Emergency Stop Signage"
+        detector_prompts: ["safety instructional poster", "notice board"]
+      - item: "biometric_device"
+        label: "Centre Attendance Terminal"
+        detector_prompts: ["biometric attendance device"]
+    workstation_capacity_rule:
+      primary_item: "sewing_machine"
+      ratio_per_trainee: 1.0  # 1 machine per trainee
+      minimum_seating_ratio: 1.0
+    compliance_checks:
+      instructor_presence: true
+      ppe_compliance: true
+      safety_items: true
+      signage: true
+      capacity: true
+      activity_state: true
+
+  it_lab:
+    id: "it_lab"
+    name: "IT & Digital Skills"
+    category: "IT-ITeS (Information Technology)"
+    description: "High-density computer laboratory for software development, data entry, cyber security, and digital literacy training."
+    sanctioned_equipment:
+      - item: "computer"
+        expected_per_batch: 15
+        detector_prompts: ["computer monitor", "desktop computer", "laptop"]
+        operability:
+          check_type: "computer"
+          screen_variance_threshold: 12.0
+          screen_min_brightness: 35.0
+      - item: "chair"
+        expected_per_batch: 15
+        detector_prompts: ["office chair", "swivel chair", "chair"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+      - item: "server_rack"
+        expected_per_batch: 1
+        detector_prompts: ["network server rack", "telecom cabinet"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+      - item: "projector"
+        expected_per_batch: 1
+        detector_prompts: ["digital projector", "ceiling mounted projector", "tv screen"]
+        operability:
+          check_type: "computer"
+    required_ppe: []  # No mandatory personal protective equipment required for computer labs
+    safety_items:
+      - item: "fire_extinguisher"
+        label: "Clean Agent / CO2 Electrical Fire Extinguisher"
+        required: true
+        detector_prompts: ["fire extinguisher"]
+      - item: "first_aid_box"
+        label: "Standard First-Aid Kit"
+        required: true
+        detector_prompts: ["first aid box"]
+    mandatory_signage:
+      - item: "lab_rules_banner"
+        label: "Digital Laboratory Code of Conduct Sign"
+        detector_prompts: ["instructional banner", "scheme information poster"]
+      - item: "biometric_device"
+        label: "Biometric Aadhaar Terminal"
+        detector_prompts: ["biometric attendance device"]
+    workstation_capacity_rule:
+      primary_item: "computer"
+      ratio_per_trainee: 1.0  # 1 terminal per student
+      minimum_seating_ratio: 1.0
+    compliance_checks:
+      instructor_presence: true
+      ppe_compliance: false  # PPE check bypassed for digital trades
+      safety_items: true
+      signage: true
+      capacity: true
+      activity_state: true
+
+  electrical:
+    id: "electrical"
+    name: "Electrical & Electronics"
+    category: "Electronic & Electrical Infrastructure"
+    description: "Domestic wiring, motor winding, circuit prototyping, and consumer electronics repair workshop."
+    sanctioned_equipment:
+      - item: "multimeter_bench"
+        expected_per_batch: 8
+        detector_prompts: ["oscilloscope workbench", "digital multimeter testing bench", "workbench"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+          require_person_proximity: true
+      - item: "soldering_station"
+        expected_per_batch: 8
+        detector_prompts: ["soldering station", "temperature soldering iron"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+      - item: "circuit_trainer"
+        expected_per_batch: 4
+        detector_prompts: ["electronic wiring panel", "circuit board kit", "trainer board"]
+        operability:
+          check_type: "machine"
+      - item: "insulated_mat"
+        expected_per_batch: 8
+        detector_prompts: ["safety rubber mat", "insulation matting"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+      - item: "chair"
+        expected_per_batch: 16
+        detector_prompts: ["chair", "stool"]
+        operability:
+          check_type: "bench"
+    required_ppe:
+      - name: "insulated_gloves"
+        label: "11kV Class 0 Rubber Insulated Gloves"
+        required: true
+        detector_prompts: ["rubber gloves", "yellow electrical gloves"]
+        min_ratio: 0.80
+      - name: "safety_glasses"
+        label: "Anti-Arc Safety Eyewear"
+        required: true
+        detector_prompts: ["safety goggles", "protective glasses"]
+        min_ratio: 0.80
+    safety_items:
+      - item: "fire_extinguisher"
+        label: "Class E Non-Conductive CO2 Extinguisher"
+        required: true
+        detector_prompts: ["fire extinguisher"]
+      - item: "first_aid_box"
+        label: "Electric Shock Trauma First-Aid Kit"
+        required: true
+        detector_prompts: ["first aid box"]
+    mandatory_signage:
+      - item: "high_voltage_danger"
+        label: "High Voltage Caution Signage & Shock Chart"
+        detector_prompts: ["danger high voltage sign", "shock recovery chart"]
+      - item: "biometric_device"
+        label: "Attendance Device"
+        detector_prompts: ["biometric attendance device"]
+    workstation_capacity_rule:
+      primary_item: "multimeter_bench"
+      ratio_per_trainee: 0.5  # 1 bench per pair (2 trainees)
+      minimum_seating_ratio: 1.0
+    compliance_checks:
+      instructor_presence: true
+      ppe_compliance: true
+      safety_items: true
+      signage: true
+      capacity: true
+      activity_state: true
+
+  beauty_wellness:
+    id: "beauty_wellness"
+    name: "Beauty & Wellness"
+    category: "Beauty and Wellness Sector"
+    description: "Cosmetology, hair styling, skin care, and personal wellness training salon setup."
+    sanctioned_equipment:
+      - item: "styling_chair"
+        expected_per_batch: 8
+        detector_prompts: ["salon styling chair", "hydraulic chair", "chair"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+      - item: "mirror_station"
+        expected_per_batch: 8
+        detector_prompts: ["illuminated vanity mirror", "dresser station", "mirror"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+      - item: "shampoo_basin"
+        expected_per_batch: 2
+        detector_prompts: ["hair wash basin", "shampoo sink station"]
+        operability:
+          check_type: "bench"
+      - item: "facial_steamer"
+        expected_per_batch: 4
+        detector_prompts: ["facial steamer unit", "ozone steamer"]
+        operability:
+          check_type: "machine"
+          power_indicator: true
+      - item: "product_trolley"
+        expected_per_batch: 8
+        detector_prompts: ["salon utility trolley", "rolling shelf"]
+        operability:
+          check_type: "bench"
+    required_ppe:
+      - name: "salon_apron"
+        label: "Protective Salon Apron"
+        required: true
+        detector_prompts: ["black apron", "salon cape"]
+        min_ratio: 0.75
+      - name: "face_mask"
+        label: "Sanitary Breath Mask"
+        required: true
+        detector_prompts: ["sanitary mask", "face mask"]
+        min_ratio: 0.75
+    safety_items:
+      - item: "first_aid_box"
+        label: "Skin Burn & Allergy First-Aid Kit"
+        required: true
+        detector_prompts: ["first aid box"]
+      - item: "fire_extinguisher"
+        label: "Standard Fire Extinguisher"
+        required: true
+        detector_prompts: ["fire extinguisher"]
+    mandatory_signage:
+      - item: "sterilization_protocol"
+        label: "Hygiene and Tool Sterilization Display Chart"
+        detector_prompts: ["hygiene poster", "protocol banner"]
+      - item: "biometric_device"
+        label: "AEPS Attendance Terminal"
+        detector_prompts: ["biometric attendance device"]
+    workstation_capacity_rule:
+      primary_item: "styling_chair"
+      ratio_per_trainee: 0.5  # 1 client chair per 2 students (stylist + client pair)
+      minimum_seating_ratio: 1.0
+    compliance_checks:
+      instructor_presence: true
+      ppe_compliance: true
+      safety_items: true
+      signage: true
+      capacity: true
+      activity_state: true
+
+  retail:
+    id: "retail"
+    name: "Retail & Sales Assistant"
+    category: "Retail Sector Skill Council"
+    description: "Simulated store environment with point-of-sale checkout counter, inventory displays, and customer service zone."
+    sanctioned_equipment:
+      - item: "pos_terminal"
+        expected_per_batch: 3
+        detector_prompts: ["point of sale terminal", "billing computer", "cash register"]
+        operability:
+          check_type: "computer"
+          screen_variance_threshold: 12.0
+      - item: "billing_counter"
+        expected_per_batch: 3
+        detector_prompts: ["checkout counter", "retail counter", "workbench"]
+        operability:
+          check_type: "bench"
+          check_unblocked: true
+      - item: "display_rack"
+        expected_per_batch: 6
+        detector_prompts: ["merchandise display rack", "store shelving unit", "shelf"]
+        operability:
+          check_type: "bench"
+      - item: "chair"
+        expected_per_batch: 12
+        detector_prompts: ["chair"]
+        operability:
+          check_type: "bench"
+    required_ppe:
+      - name: "staff_uniform"
+        label: "Retail Vest / Uniform"
+        required: true
+        detector_prompts: ["retail vest", "uniform shirt"]
+        min_ratio: 0.70
+    safety_items:
+      - item: "fire_extinguisher"
+        label: "Commercial Fire Extinguisher"
+        required: true
+        detector_prompts: ["fire extinguisher"]
+      - item: "first_aid_box"
+        label: "Store First-Aid Kit"
+        required: true
+        detector_prompts: ["first aid box"]
+    mandatory_signage:
+      - item: "store_banner"
+        label: "Skill Store Branding and Scheme Banner"
+        detector_prompts: ["retail store banner", "promotional poster"]
+      - item: "biometric_device"
+        label: "Staff Biometric Terminal"
+        detector_prompts: ["biometric attendance device"]
+    workstation_capacity_rule:
+      primary_item: "billing_counter"
+      ratio_per_trainee: 0.33  # 1 checkout counter per 3 trainees
+      minimum_seating_ratio: 0.8
+    compliance_checks:
+      instructor_presence: true
+      ppe_compliance: false
+      safety_items: true
+      signage: true
+      capacity: true
+      activity_state: true
