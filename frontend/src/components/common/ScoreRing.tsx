@@ -34,7 +34,7 @@ export const ScoreRing: React.FC<ScoreRingProps> = ({
   }
 
   const dimensions = {
-    sm: { diameter: 44, strokeWidth: 4, textSize: 'text-xs font-bold', iconSize: 16 },
+    sm: { diameter: 46, strokeWidth: 3.5, textSize: 'text-xs font-bold', iconSize: 16 },
     md: { diameter: 68, strokeWidth: 5.5, textSize: 'text-sm font-bold', iconSize: 22 },
     lg: { diameter: 108, strokeWidth: 8, textSize: 'text-2xl font-extrabold', iconSize: 32 },
   }[size];
