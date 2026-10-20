@@ -12,9 +12,17 @@ def test_health_and_root(client):
     assert res_root.status_code == 200
     assert "Pratyaksha" in res_root.json()["app"]
 
+    res_root_api = client.get("/api")
+    assert res_root_api.status_code == 200
+    assert res_root_api.json() == res_root.json()
+
     res_health = client.get("/health")
     assert res_health.status_code == 200
     assert res_health.json()["status"] == "healthy"
+
+    res_health_api = client.get("/api/health")
+    assert res_health_api.status_code == 200
+    assert res_health_api.json()["status"] == "healthy"
 
 
 def test_centres_crud(client):

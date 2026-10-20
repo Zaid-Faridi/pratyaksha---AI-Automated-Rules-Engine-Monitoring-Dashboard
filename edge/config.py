@@ -121,7 +121,7 @@ class EdgeConfig:
             centre_id=os.getenv("PRATYAKSHA_CENTRE_ID", edge_section.get("centre_id", "centre_01")),
             camera_id=os.getenv("PRATYAKSHA_CAMERA_ID", edge_section.get("camera_id", "cam_01")),
             source=os.getenv("PRATYAKSHA_CAMERA_SOURCE", edge_section.get("source", "sample_data/skilling_center_demo.mp4")),
-            backend_url=os.getenv("PRATYAKSHA_BACKEND_URL", backend_section.get("url", "http://127.0.0.1:8088")).rstrip("/"),
+            backend_url=os.getenv("BACKEND_URL", os.getenv("PRATYAKSHA_BACKEND_URL", backend_section.get("url", "http://127.0.0.1:8088"))).rstrip("/"),
             api_key=os.getenv("PRATYAKSHA_API_KEY", backend_section.get("api_key", None)),
             request_timeout_sec=float(backend_section.get("timeout_sec", 10.0)),
             profile_name=os.getenv("PRATYAKSHA_PROFILE", profile_section.get("profile", "normal")),

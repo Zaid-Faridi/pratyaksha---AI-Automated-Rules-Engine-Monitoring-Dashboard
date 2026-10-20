@@ -29,10 +29,11 @@ from edge.sync_worker import SyncWorker
 
 
 def simulate_outage_and_recovery(
-    backend_url: str = "http://127.0.0.1:8088",
+    backend_url: str = None,
     camera_id: str = "cam_01",
     centre_id: str = "centre_mh_01",
 ) -> None:
+    backend_url = (backend_url or os.getenv("BACKEND_URL") or os.getenv("PRATYAKSHA_BACKEND_URL") or "http://127.0.0.1:8088").rstrip("/")
     # Auto-discover first available centre and camera if possible
     try:
         r_centres = requests.get(f"{backend_url}/centres", timeout=3.0)
