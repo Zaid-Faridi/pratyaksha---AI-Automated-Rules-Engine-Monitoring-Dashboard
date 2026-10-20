@@ -6,6 +6,7 @@ Reads detection events from Phase 1 output JSONL and streams them to the FastAPI
 
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 import httpx
@@ -69,10 +70,11 @@ def main():
         default="../outputs/detections.jsonl",
         help="Path to Phase 1 JSON Lines output file.",
     )
+    default_api = os.getenv("BACKEND_URL", "http://localhost:8000").rstrip("/") + "/events"
     parser.add_argument(
         "--url",
         type=str,
-        default="http://localhost:8000/events",
+        default=default_api,
         help="FastAPI /events endpoint URL.",
     )
     parser.add_argument(

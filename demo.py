@@ -19,8 +19,8 @@ import webbrowser
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT_DIR))
 
-BACKEND_URL = "http://127.0.0.1:8088"
-FRONTEND_URL = "http://localhost:5188"
+BACKEND_URL = os.getenv("BACKEND_URL", os.getenv("PRATYAKSHA_BACKEND_URL", "http://127.0.0.1:8088")).rstrip("/")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5188").rstrip("/")
 
 
 def is_service_ready(url: str, timeout: float = 2.0) -> bool:

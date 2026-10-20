@@ -57,22 +57,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register API Routers
-app.include_router(events.router)
-app.include_router(attendance.router)
-app.include_router(centres.router)
-app.include_router(cameras.router)
-app.include_router(stream.router)
-app.include_router(inventory.router)
-app.include_router(batches.router)
-app.include_router(alerts.router)
-app.include_router(audit.router)
-app.include_router(reports.router)
-app.include_router(trades.router)
-app.include_router(dashboard.router)
+# Register API Routers under both root and /api prefixes to reconcile Vercel service rewrites
+api_routers = [
+    events.router,
+    attendance.router,
+    centres.router,
+    cameras.router,
+    stream.router,
+    inventory.router,
+    batches.router,
+    alerts.router,
+    audit.router,
+    reports.router,
+    trades.router,
+    dashboard.router,
+]
+
+for router_item in api_routers:
+    app.include_router(router_item)
+    app.include_router(router_item, prefix="/api")
 
 
 @app.get("/", tags=["Health & Info"])
+@app.get("/api", tags=["Health & Info"])
 def root():
     return {
         "app": settings.app_name,
@@ -84,5 +91,6 @@ def root():
 
 
 @app.get("/health", tags=["Health & Info"])
+@app.get("/api/health", tags=["Health & Info"])
 def health_check():
     return {"status": "healthy"}
