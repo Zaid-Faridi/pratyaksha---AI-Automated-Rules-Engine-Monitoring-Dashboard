@@ -1,60 +1,161 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" width="100%" height="100%">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0A2540" />
-      <stop offset="50%" stop-color="#075985" />
-      <stop offset="100%" stop-color="#0D9488" />
+    <!-- Deep Space Cyber Shield Background -->
+    <linearGradient id="pkShieldBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#030A16" />
+      <stop offset="45%" stop-color="#061B2E" />
+      <stop offset="85%" stop-color="#082A3E" />
+      <stop offset="100%" stop-color="#0B3848" />
     </linearGradient>
-    <linearGradient id="lensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+
+    <!-- Electric Cyan to Mint Teal Gradient -->
+    <linearGradient id="pkCyanTeal" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#38BDF8" />
-      <stop offset="60%" stop-color="#2DD4BF" />
+      <stop offset="50%" stop-color="#22D3EE" />
       <stop offset="100%" stop-color="#14B8A6" />
     </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F59E0B" />
-      <stop offset="100%" stop-color="#FCD34D" />
+
+    <!-- Saffron & Amber Sovereign Tech Accent -->
+    <linearGradient id="pkSaffronGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF9933" />
+      <stop offset="100%" stop-color="#F59E0B" />
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+
+    <!-- Aperture Shutter Gradient -->
+    <linearGradient id="pkIrisBlade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0F2840" />
+      <stop offset="100%" stop-color="#071929" />
+    </linearGradient>
+
+    <!-- Core Lens High-Energy Glow -->
+    <filter id="pkCoreGlow" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <!-- Outer Halo Glow -->
+    <filter id="pkNeonHalo" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
 
-  <!-- Background Rounded Hexagonal Shield -->
-  <rect x="6" y="6" width="108" height="108" rx="26" fill="url(#bgGrad)" stroke="#38BDF8" stroke-width="2" stroke-opacity="0.35" />
+  <!-- 1. Outer Cybernetic Shield with Chamfered Corners -->
+  <rect
+    x="6"
+    y="6"
+    width="116"
+    height="116"
+    rx="26"
+    fill="url(#pkShieldBg)"
+    stroke="url(#pkCyanTeal)"
+    stroke-width="2.2"
+    stroke-opacity="0.75"
+  />
 
-  <!-- Subdued Radar / Spatial Concentric Grid -->
-  <circle cx="60" cy="60" r="42" stroke="#38BDF8" stroke-width="1" stroke-opacity="0.18" stroke-dasharray="3 3" />
-  <circle cx="60" cy="60" r="30" stroke="#2DD4BF" stroke-width="1" stroke-opacity="0.25" />
+  <!-- 2. Micro Circuit Matrix Grid Lines -->
+  <path
+    d="M 6 36 L 18 36 L 24 30 M 122 36 L 110 36 L 104 30 M 6 92 L 18 92 L 24 98 M 122 92 L 110 92 L 104 98"
+    stroke="#38BDF8"
+    stroke-width="1.2"
+    stroke-opacity="0.3"
+    stroke-linecap="round"
+  />
 
-  <!-- Camera Viewfinder Corner Brackets -->
-  <path d="M 24 34 L 24 24 L 34 24" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M 96 34 L 96 24 L 86 24" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M 24 86 L 24 96 L 34 96" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M 96 86 L 96 96 L 86 96" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- 3. Concentric Spatial Radar Coordinates -->
+  <circle
+    cx="64"
+    cy="64"
+    r="48"
+    stroke="#38BDF8"
+    stroke-width="1"
+    stroke-opacity="0.15"
+    stroke-dasharray="4 4"
+  />
+  <circle
+    cx="64"
+    cy="64"
+    r="36"
+    stroke="#22D3EE"
+    stroke-width="1.2"
+    stroke-opacity="0.25"
+  />
 
-  <!-- Pratyaksha Optical Eye Contour (Direct Perception) -->
-  <path d="M 26 60 C 37 42, 83 42, 94 60 C 83 78, 37 78, 26 60 Z" 
-        fill="#031726" 
-        fill-opacity="0.5" 
-        stroke="url(#lensGrad)" 
-        stroke-width="3" 
-        stroke-linecap="round" 
-        stroke-linejoin="round" />
+  <!-- 4. High-Tech Precision Viewfinder Corner Brackets -->
+  <path
+    d="M 22 36 L 22 22 L 36 22"
+    stroke="#38BDF8"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M 106 36 L 106 22 L 92 22"
+    stroke="#38BDF8"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M 22 92 L 22 106 L 36 106"
+    stroke="#38BDF8"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M 106 92 L 106 106 L 92 106"
+    stroke="#38BDF8"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
 
-  <!-- Inner Iris Ring with Tech Notches -->
-  <circle cx="60" cy="60" r="17" stroke="#38BDF8" stroke-width="2" fill="#0A2540" fill-opacity="0.9" />
-  <circle cx="60" cy="60" r="11" fill="url(#lensGrad)" />
+  <!-- 5. Pratyaksha Optical Perception Eye (प्रत्यक्ष त्रिनेत्र Contour) -->
+  <path
+    d="M 20 64 C 36 38, 92 38, 108 64 C 92 90, 36 90, 20 64 Z"
+    fill="#020B16"
+    fill-opacity="0.75"
+    stroke="url(#pkCyanTeal)"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#pkNeonHalo)"
+  />
 
-  <!-- Central Pupil / AI Core Pulse -->
-  <circle cx="60" cy="60" r="5" fill="#FFFFFF" filter="url(#glow)" />
+  <!-- 6. Mechanical Camera Shutter / Aperture Blades (Hex-Iris) -->
+  <g stroke="#38BDF8" stroke-width="1" stroke-opacity="0.45">
+    <circle cx="64" cy="64" r="22" fill="url(#pkIrisBlade)" stroke="url(#pkCyanTeal)" stroke-width="1.8" />
+    <line x1="64" y1="42" x2="52" y2="58" />
+    <line x1="84" y1="52" x2="68" y2="60" />
+    <line x1="82" y1="76" x2="68" y2="72" />
+    <line x1="64" y1="86" x2="76" y2="70" />
+    <line x1="44" y1="76" x2="60" y2="68" />
+    <line x1="46" y1="52" x2="60" y2="56" />
+  </g>
 
-  <!-- Crosshair Reticle Center Lines -->
-  <line x1="60" y1="36" x2="60" y2="40" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
-  <line x1="60" y1="80" x2="60" y2="84" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
-  <line x1="36" y1="60" x2="40" y2="60" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
-  <line x1="80" y1="60" x2="84" y2="60" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
+  <!-- 7. Inner Quantum Perception Sensor (Core Iris) -->
+  <circle cx="64" cy="64" r="13" fill="#031221" stroke="#38BDF8" stroke-width="1.8" />
+  <circle cx="64" cy="64" r="9" fill="url(#pkCyanTeal)" />
 
-  <!-- Small Optical Reflex Highlight -->
-  <circle cx="56.5" cy="56.5" r="2" fill="#FFFFFF" fill-opacity="0.9" />
+  <!-- 8. Central Radiant AI Pulse Core -->
+  <circle
+    cx="64"
+    cy="64"
+    r="4.5"
+    fill="#FFFFFF"
+    filter="url(#pkCoreGlow)"
+  />
+
+  <!-- 9. Crosshair Laser Targeting Marks -->
+  <line x1="64" y1="18" x2="64" y2="24" stroke="url(#pkSaffronGold)" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="64" y1="104" x2="64" y2="110" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
+  <line x1="18" y1="64" x2="24" y2="64" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
+  <line x1="104" y1="64" x2="110" y2="64" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" />
+
+  <!-- 10. Sovereign Tech Beacon Dot (Indian Saffron/Gold Top Apex) -->
+  <circle cx="64" cy="14" r="2.5" fill="url(#pkSaffronGold)" filter="url(#pkCoreGlow)" />
+
+  <!-- 11. Optical Glass Specular Flare -->
+  <ellipse cx="59" cy="59" rx="3.5" ry="2" fill="#FFFFFF" fill-opacity="0.85" transform="rotate(-30 59 59)" />
 </svg>

@@ -28,9 +28,14 @@ export const Header: React.FC<HeaderProps> = ({
           <Link to="/" className="flex items-center gap-3 group">
             <PratyakshaLogo size="md" className="group-hover:scale-105 transition-transform" />
             <div>
-              <span className="font-extrabold text-lg tracking-tight text-gov-900 dark:text-white block leading-tight">
-                Pratyaksha
-              </span>
+              <div className="flex items-center">
+                <span className="font-extrabold text-lg tracking-tight text-gov-900 dark:text-white block leading-tight">
+                  Pratyaksha
+                </span>
+                <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 px-1.5 py-0.5 rounded ml-1.5 leading-normal">
+                  प्रत्यक्ष
+                </span>
+              </div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight mt-0.5">
                 AI Skilling Centre Monitoring Unit
               </p>
